@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+.idea
+
+!.idea/vcs.xml
+!.idea/runConfigurations.xml
