@@ -37,7 +37,7 @@ data class BreakfastFood(
 )
 
 @Composable
-fun BreakfastScreen() {
+fun BreakfastScreen(onBack: () -> Unit = {}) {
     // `foodName` stores what the user types
     // `remember` keyword is used to keep the value when screen updates
     var foodName by remember { mutableStateOf("") }
@@ -62,7 +62,7 @@ fun BreakfastScreen() {
         modifier = Modifier.fillMaxSize().padding(16.dp)) {
 
         // a button to go back to previous page
-        Button(onClick = { }) {
+        Button(onClick = onBack) {
             Text("Back")
         }
 
