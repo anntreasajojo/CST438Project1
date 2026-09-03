@@ -14,3 +14,8 @@
 .cxx
 local.properties
 .omc/
+.idea
+.idea/misc.xml
+
+!.idea/vcs.xml
+!.idea/runConfigurations.xml
