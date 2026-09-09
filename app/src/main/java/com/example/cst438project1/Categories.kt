@@ -136,8 +136,8 @@ fun CategoriesScreen() {
                                     Text(text = "${food.category} • ${food.calories} calories")
                                 }
 
-                                // placeholder box for the food image
-                                // Replace with API image once I figure out the API
+                                // placeholder box for the food image, replace for
+                                // API image once I figure out the API
                                 Box(
                                     modifier = Modifier
                                         .size(48.dp)
