@@ -12,22 +12,22 @@ interface FoodDao {
     @Insert
     suspend fun insertFood(food: Food)
 
-    @Query("SELECT * FROM food WHERE id = :id")
+    @Query("SELECT * FROM foods WHERE id = :id")
     suspend fun getFoodById(id: Int): Food?
 
-    @Query("SELECT * FROM food WHERE name = :name")
+    @Query("SELECT * FROM foods WHERE name = :name")
     suspend fun getFoodByName(name: String): Food?
 
-    @Query("SELECT * FROM food WHERE calories = :calories")
+    @Query("SELECT * FROM foods WHERE calories = :calories")
     suspend fun getFoodByCalories(calories: Int): Food?
 
-    @Query("SELECT * FROM food WHERE fat = :fat")
+    @Query("SELECT * FROM foods WHERE fat = :fat")
     suspend fun getFoodByFat(fat: Double): Food?
 
-    @Query("SELECT * FROM food WHERE protein = :protein")
+    @Query("SELECT * FROM foods WHERE protein = :protein")
     suspend fun getFoodByProtein(protein: Double): Food?
 
-    @Query("SELECT * FROM food WHERE carbs = :carbs")
+    @Query("SELECT * FROM foods WHERE carbs = :carbs")
     suspend fun getFoodByCarbs(carbs: Double): Food?
 
 }
