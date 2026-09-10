@@ -36,6 +36,12 @@ data class LunchFood(
     val calories: Int
 )
 
+// adds up and returns the total calories of all foods in the list
+// list contains LunchFood objects
+fun calculateTotalCalories(foods: List<LunchFood>): Int {
+    return foods.sumOf { food -> food.calories }
+}
+
 @Composable
 fun LunchScreen(onBack: () -> Unit = {}) {
     // `foodName` stores what the user types
@@ -51,11 +57,7 @@ fun LunchScreen(onBack: () -> Unit = {}) {
     )
 
     // this adds the calories from every food in the lunch list
-    var totalCalories = 0
-
-    for (food in lunchFoods){
-        totalCalories = totalCalories + food.calories
-    }
+    val totalCalories = calculateTotalCalories(lunchFoods)
 
     // START OF THE MAIN COLUMN
     Column(
