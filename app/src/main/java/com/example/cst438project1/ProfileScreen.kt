@@ -151,7 +151,7 @@ private fun GoalField(
 }
 
 @Composable
-private fun Hairline() {
+internal fun Hairline() {
     Box(
         Modifier
             .fillMaxWidth()

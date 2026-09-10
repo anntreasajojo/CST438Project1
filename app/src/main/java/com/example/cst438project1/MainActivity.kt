@@ -20,9 +20,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +33,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.cst438project1.database.AppDatabase
+import com.example.cst438project1.database.User
 import com.example.cst438project1.ui.theme.CST438Project1Theme
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 enum class Tab(val label: String) {
@@ -51,6 +56,42 @@ class MainActivity : ComponentActivity() {
                 val log = rememberMealLog()
                 val favorites = rememberFavorites()
                 val profile = rememberProfile()
+
+                val dao = remember { AppDatabase.getDatabase(applicationContext).userDao() }
+                var user by remember { mutableStateOf<User?>(null) }
+                var checked by remember { mutableStateOf(false) }
+                val scope = rememberCoroutineScope()
+
+                // ponytail: reopening as the newest account stands in for signing
+                // in. Replace with the login screen once it exists.
+                LaunchedEffect(Unit) {
+                    user = dao.latestUser()
+                    checked = true
+                }
+
+                // The targets the rest of the app measures against belong to
+                // whoever is signed in.
+                LaunchedEffect(user) {
+                    user?.let {
+                        profile.value = Profile(
+                            calorieGoal = it.calorieGoal,
+                            carbGoal = it.carbGoal,
+                            proteinGoal = it.proteinGoal,
+                            fatGoal = it.fatGoal
+                        )
+                    }
+                }
+
+                // One query, so a spinner would only ever flash.
+                if (!checked) return@CST438Project1Theme
+
+                if (user == null) {
+                    RegisterScreen(
+                        dao = dao,
+                        onRegistered = { id -> scope.launch { user = dao.getUserById(id) } }
+                    )
+                    return@CST438Project1Theme
+                }
 
                 BackHandler(enabled = openMeal != null) { openMeal = null }
 
