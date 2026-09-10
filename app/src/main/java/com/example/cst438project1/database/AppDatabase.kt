@@ -6,7 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [User::class],
+    entities = [User::class,
+               Food::class],
     version = 1,
     exportSchema = true
 )
