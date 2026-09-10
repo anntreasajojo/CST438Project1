@@ -135,3 +135,9 @@ fun LunchScreen(onBack: () -> Unit = {}) {
     }
 }
 
+// preview without running the app
+@Preview(showBackground = true)
+@Composable
+fun LunchScreenPreview() {
+    LunchScreen()
+}
