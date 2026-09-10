@@ -54,7 +54,7 @@ val foods = listOf(
 val categoryOrder = listOf("Breakfast", "Lunch", "Dinner", "Snacks")
 
 @Composable
-fun CategoriesScreen() {
+fun CategoriesScreen(onBack: () -> Unit = {}) {
     // stores which food the user tapped on
     var selectedFood by remember { mutableStateOf<Food?>(null) }
 
@@ -65,7 +65,7 @@ fun CategoriesScreen() {
         modifier = Modifier.fillMaxSize().padding(16.dp)) {
 
         // a button to go back to previous page
-        Button(onClick = { }) {
+        Button(onClick = onBack) {
             Text("Back")
         }
 
@@ -127,10 +127,13 @@ fun CategoriesScreen() {
                                 .clickable { selectedFood = food }
                         ) {
                             Row(
-                                modifier = Modifier.padding(16.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
-                            ) {
+                            )
+                            {
                                 Column {
                                     Text(text = food.name)
                                     Text(text = "${food.category} • ${food.calories} calories")
