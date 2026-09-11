@@ -41,6 +41,5 @@ class UserDaoTest {
         userDao.insertUser(user)
         val retrievedUser = userDao.getUserById(1)
         assertEquals(user, retrievedUser)
-
     }
 }
