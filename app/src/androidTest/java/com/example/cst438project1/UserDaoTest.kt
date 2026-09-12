@@ -34,11 +34,7 @@ class UserDaoTest {
 
     @After
     fun closeDB() {
-        try {
-            db.close()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        db.close()
     }
 
     private fun user(username: String = "testuser") = User(
