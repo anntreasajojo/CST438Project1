@@ -28,36 +28,24 @@ class FoodDaoTest {
 
     @After
     fun closeDB() {
-        try {
-            db.close()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        db.close()
     }
 
     @Test
     fun insertFood() = runTest {
         val food = Food(1, "Banana", 260, 0.4, 0.4, 0.4)
-        try {
-            foodDao.insertFood(food)
-            val retrievedFood = foodDao.getFoodById(1)
-            assertEquals(food, retrievedFood)
-            println("TEST: PASSED, insertFood()")
-        } catch(e: Exception) {
-            e.printStackTrace()
-        }
+        foodDao.insertFood(food)
+        val retrievedFood = foodDao.getFoodById(1)
+        assertEquals(food, retrievedFood)
+        println("TEST: PASSED, insertFood()")
     }
 
     @Test
     fun getFoodByName() = runTest {
         val food = Food(1, "Banana", 260, 0.4, 0.4, 0.4)
-        try {
-            foodDao.insertFood(food)
-            val retrievedFood = foodDao.getFoodByName("Banana")
-            assertEquals(food, retrievedFood)
-            println("TEST: PASSED, getFoodByName()")
-        } catch(e: Exception) {
-            e.printStackTrace()
-        }
+        foodDao.insertFood(food)
+        val retrievedFood = foodDao.getFoodByName("Banana")
+        assertEquals(food, retrievedFood)
+        println("TEST: PASSED, getFoodByName()")
     }
 }
