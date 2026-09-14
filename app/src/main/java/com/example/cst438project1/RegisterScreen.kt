@@ -60,17 +60,21 @@ import java.util.Locale
 // Validation lives outside the composables so it can be tested without a screen.
 // Each returns the message to show, or null when the value is fine.
 
+internal const val USERNAME_MIN = 3
+internal const val USERNAME_MAX = 20
+internal const val PASSWORD_MIN = 8
+
 internal fun usernameError(value: String): String? = when {
     value.isEmpty() -> null
-    value.length < 3 -> "At least 3 characters."
-    value.length > 20 -> "At most 20 characters."
+    value.length < USERNAME_MIN -> "At least $USERNAME_MIN characters."
+    value.length > USERNAME_MAX -> "At most $USERNAME_MAX characters."
     !value.all { it.isLetterOrDigit() || it == '_' } -> "Letters, numbers and _ only."
     else -> null
 }
 
 internal fun passwordError(value: String): String? = when {
     value.isEmpty() -> null
-    value.length < 8 -> "At least 8 characters."
+    value.length < PASSWORD_MIN -> "At least $PASSWORD_MIN characters."
     else -> null
 }
 
@@ -94,9 +98,13 @@ internal val HEIGHT_RANGE = 100..250
 internal val WEIGHT_RANGE = 30..300
 
 internal fun rangeError(value: String, range: IntRange, unit: String): String? {
-    if (value.isEmpty()) return null
-    val number = value.toIntOrNull() ?: return "Numbers only."
-    return if (number in range) null else "${range.first}-${range.last} $unit."
+    val number = value.toIntOrNull()
+    return when {
+        value.isEmpty() -> null
+        number == null -> "Numbers only."
+        number in range -> null
+        else -> "${range.first}-${range.last} $unit."
+    }
 }
 
 // Which of the four target fields the user has typed into. Those keep their
@@ -247,7 +255,7 @@ fun RegisterScreen(
                                 )
                             )
                             onRegistered(id.toInt())
-                        } catch (e: SQLiteConstraintException) {
+                        } catch (ignored: SQLiteConstraintException) {
                             // Someone took the name between the check and here.
                             takenName = username
                             onboarding = false

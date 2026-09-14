@@ -18,13 +18,22 @@ private const val CALORIES_PER_FAT_GRAM = 9
 // the target stops here regardless of the inputs.
 private const val CALORIE_FLOOR = 1200
 
+// Mifflin-St Jeor coefficients.
+private const val KCAL_PER_KG = 10.0
+private const val KCAL_PER_CM = 6.25
+private const val KCAL_PER_YEAR = 5.0
+private const val MALE_OFFSET = 5.0
+private const val FEMALE_OFFSET = -161.0
+
+// Halfway between the two, so the estimate leans neither way.
+private const val OTHER_OFFSET = -78.0
+
 // Mifflin-St Jeor: calories burned at rest.
 fun bmr(sex: Sex, weightKg: Int, heightCm: Int, age: Int): Double =
-    10.0 * weightKg + 6.25 * heightCm - 5.0 * age + when (sex) {
-        Sex.MALE -> 5.0
-        Sex.FEMALE -> -161.0
-        // Halfway between the two, so the estimate leans neither way.
-        Sex.OTHER -> -78.0
+    KCAL_PER_KG * weightKg + KCAL_PER_CM * heightCm - KCAL_PER_YEAR * age + when (sex) {
+        Sex.MALE -> MALE_OFFSET
+        Sex.FEMALE -> FEMALE_OFFSET
+        Sex.OTHER -> OTHER_OFFSET
     }
 
 // Resting burn scaled by how much the person moves, shifted by what they are

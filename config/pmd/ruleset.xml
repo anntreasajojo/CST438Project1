@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ruleset name="CST438 Kotlin Rules"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+    <description>Code smell checks for the Kotlin sources of CST438Project1.</description>
+
+    <rule ref="category/kotlin/bestpractices.xml/FunctionNameTooShort"/>
+    <rule ref="category/kotlin/errorprone.xml/OverrideBothEqualsAndHashcode"/>
+</ruleset>

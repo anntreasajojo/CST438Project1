@@ -418,7 +418,9 @@ private fun EntryRow(entry: FoodEntry, onRemove: () -> Unit) {
 }
 
 // Keeps the numeric fields numeric, so there is no error state to explain.
-internal fun String.digits() = filter { it.isDigit() }.take(5)
+private const val MAX_DIGITS = 5
+
+internal fun String.digits() = filter { it.isDigit() }.take(MAX_DIGITS)
 
 @Composable
 internal fun Field(

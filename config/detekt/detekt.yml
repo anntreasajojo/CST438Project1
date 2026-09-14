@@ -1,0 +1,21 @@
+# Only overrides live here; everything else is detekt's default config.
+# These overrides follow Jetpack Compose conventions, not relaxed standards.
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']       # composables are PascalCase by convention
+  MatchingDeclarationName:
+    active: false                         # XScreen.kt holds the XScreen composable plus its data class
+
+complexity:
+  LongParameterList:
+    ignoreAnnotated: ['Composable']       # state hoisting passes value + callback pairs
+  TooManyFunctions:
+    ignorePrivate: true                   # small private composables per screen are normal
+
+style:
+  MagicNumber:
+    ignoreAnnotated: ['Composable', 'Preview']   # dp/sp sizes and sample data
+    excludes: ['**/test/**', '**/androidTest/**', '**/ui/theme/**']
+    ignoreEnums: true                     # enum constructor args are already named (Activity.MODERATE(1.55))
+    ignoreRanges: true                    # ranges are assigned to named vals (AGE_RANGE)
