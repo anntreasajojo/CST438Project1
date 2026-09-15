@@ -12,6 +12,17 @@ interface FoodDao {
     @Insert
     suspend fun insertFood(food: Food)
 
+    @Insert
+    suspend fun insertFoods(foods: List<Food>)
+
+    @Query("SELECT * FROM foods")
+    suspend fun insertFoodIfNotExists(food: Food) {
+        val existingFood = getFoodById(food.id)
+        if (existingFood == null) {
+            insertFood(food)
+        }
+    }
+
     @Query("SELECT * FROM foods WHERE id = :id")
     suspend fun getFoodById(id: Int): Food?
 
@@ -29,5 +40,13 @@ interface FoodDao {
 
     @Query("SELECT * FROM foods WHERE carbs = :carbs")
     suspend fun getFoodByCarbs(carbs: Double): Food?
+
+    @Update
+    suspend fun updateFood(food: Food)
+
+    @Delete
+    suspend fun deleteFood(food: Food)
+
+
 
 }
