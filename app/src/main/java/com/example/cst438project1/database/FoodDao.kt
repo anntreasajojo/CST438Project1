@@ -32,21 +32,10 @@ interface FoodDao {
     @Query("SELECT * FROM foods WHERE calories = :calories")
     suspend fun getFoodByCalories(calories: Int): Food?
 
-    @Query("SELECT * FROM foods WHERE fat = :fat")
-    suspend fun getFoodByFat(fat: Double): Food?
-
-    @Query("SELECT * FROM foods WHERE protein = :protein")
-    suspend fun getFoodByProtein(protein: Double): Food?
-
-    @Query("SELECT * FROM foods WHERE carbs = :carbs")
-    suspend fun getFoodByCarbs(carbs: Double): Food?
-
     @Update
     suspend fun updateFood(food: Food)
 
     @Delete
     suspend fun deleteFood(food: Food)
-
-
 
 }
