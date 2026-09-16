@@ -20,7 +20,7 @@ class Converters {
 }
 
 @Database(
-    entities = [User::class],
+    entities = [User::class, Food::class],
     version = 2,
     exportSchema = true
 )

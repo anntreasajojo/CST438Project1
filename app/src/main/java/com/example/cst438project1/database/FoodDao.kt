@@ -16,12 +16,7 @@ interface FoodDao {
     suspend fun insertFoods(foods: List<Food>)
 
     @Query("SELECT * FROM foods")
-    suspend fun insertFoodIfNotExists(food: Food) {
-        val existingFood = getFoodById(food.id)
-        if (existingFood == null) {
-            insertFood(food)
-        }
-    }
+    suspend fun getAllFoods(): List<Food>
 
     @Query("SELECT * FROM foods WHERE id = :id")
     suspend fun getFoodById(id: Int): Food?
