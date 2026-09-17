@@ -14,9 +14,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -53,8 +59,22 @@ val foods = listOf(
 // order of categories to show up in
 val categoryOrder = listOf("Breakfast", "Lunch", "Dinner", "Snacks")
 
+// converts a Foods from the list into a FoodEntry that FavoritesScreen understands
+// carbs/protein/fat are 0 for now until we get real data from the API (IF we get one)
+fun Food.toFoodEntry() = FoodEntry(
+    name = this.name,
+    calories = this.calories,
+    carbs = 0,
+    protein = 0,
+    fat = 0
+)
+
 @Composable
-fun CategoriesScreen(onBack: () -> Unit = {}) {
+fun CategoriesScreen(
+    onBack: () -> Unit = {},
+    // favorites list from MainActivity so both scenes share the same data
+    favorites: SnapshotStateList<FoodEntry> = rememberFavorites()
+) {
     // stores which food the user tapped on
     var selectedFood by remember { mutableStateOf<Food?>(null) }
 
@@ -62,7 +82,8 @@ fun CategoriesScreen(onBack: () -> Unit = {}) {
     var expandedCategories by remember { mutableStateOf(setOf<String>()) }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        modifier = Modifier.fillMaxSize().padding(16.dp)
+    ) {
 
         // a button to go back to previous page
         Button(onClick = onBack) {
@@ -82,19 +103,24 @@ fun CategoriesScreen(onBack: () -> Unit = {}) {
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
         // LazyColumn for a vertical scrolling list
         LazyColumn {
             for (category in categoryOrder) {
+                // true if this specific category is in the expanded set
                 val isExpanded = expandedCategories.contains(category)
+                // only the foods that belong to this category
                 val foodsInCategory = foods.filter { it.category == category }
 
-                // category header
+                // one row per category, this is the clickable header
                 // tap to expand/collapse a drop-down menu
                 item {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
+                                // toggles this category in/out of the expanded set when tapped
+                                // - removes it from the set, + adds it, doesn't change the original set
                                 expandedCategories = if (isExpanded) {
                                     expandedCategories - category
                                 } else {
@@ -104,22 +130,26 @@ fun CategoriesScreen(onBack: () -> Unit = {}) {
                             .padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        //Purple color (primary) from Theme.kt in ui.theme folder
+                        // purple color (primary) from Theme.kt in ui.theme folder
                         Text(
                             text = category,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Text(if (isExpanded) "-" else "+",
+                        Text(
+                            if (isExpanded) "-" else "+",
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
                     HorizontalDivider()
                 }
 
-                // only show the foods in this category if it's expanded
+                // only actually adds these rows to the list if the category is expanded
                 if (isExpanded) {
                     items(foodsInCategory) { food ->
+                        // check if this food is already in the favorites list
+                        val isFavorited = favorites.any { it.name == food.name }
+
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -127,26 +157,46 @@ fun CategoriesScreen(onBack: () -> Unit = {}) {
                                 .clickable { selectedFood = food }
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
+                                modifier = Modifier.padding(16.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
-                            )
-                            {
-                                Column {
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(text = food.name)
                                     Text(text = "${food.category} • ${food.calories} calories")
                                 }
 
-                                // placeholder box for the food image, replace for
-                                // API image once I figure out the API
+                                // heart icon button to add/remove from favorites
+                                IconButton(onClick = {
+                                    if (isFavorited) {
+                                        // remove it if already favorited
+                                        favorites.removeAll { it.name == food.name }
+                                    } else {
+                                        // add it if not favorited yet
+                                        favorites.add(food.toFoodEntry())
+                                    }
+                                }) {
+                                    Icon(
+                                        // filled heart if favorited, outline if not
+                                        imageVector = if (isFavorited)
+                                            Icons.Filled.Favorite
+                                        else
+                                            Icons.Outlined.FavoriteBorder,
+                                        contentDescription = if (isFavorited)
+                                            "Remove from favorites"
+                                        else
+                                            "Add to favorites",
+                                        // red if favorited, gray if not
+                                        tint = if (isFavorited) Color.Red else Color.Gray
+                                    )
+                                }
+
+                                // stand-in for the food's image, swap for a real Image later
                                 Box(
                                     modifier = Modifier
                                         .size(48.dp)
                                         .padding(horizontal = 8.dp)
                                         .background(Color.LightGray)
-
                                 )
                             }
                         }
@@ -155,6 +205,7 @@ fun CategoriesScreen(onBack: () -> Unit = {}) {
             }
         }
 
+        // only runs this block if something's actually been tapped
         // show details for whichever food was tapped
         selectedFood?.let { food ->
             Spacer(modifier = Modifier.height(16.dp))
