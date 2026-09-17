@@ -52,7 +52,8 @@ class MainActivity : ComponentActivity() {
                 // Three tabs and one detail screen, so state values beat pulling
                 // in Navigation Compose.
                 var tab by remember { mutableStateOf(Tab.TODAY) }
-                var openMeal by remember { mutableStateOf<Meal?>(null) }
+                var openMeal by remember { mutableStateOf<Meal?>(null) } //Tracks whether Categories screen is open
+                var showCategories by remember { mutableStateOf(false) }
                 val log = rememberMealLog()
                 val favorites = rememberFavorites()
                 val profile = rememberProfile()
@@ -93,16 +94,26 @@ class MainActivity : ComponentActivity() {
                     return@CST438Project1Theme
                 }
 
-                BackHandler(enabled = openMeal != null) { openMeal = null }
+                BackHandler(enabled = openMeal != null || showCategories) {
+                    //Android Back Button
+                    openMeal = null
+                showCategories = false }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
-                        if (openMeal == null) TabBar(tab) { tab = it }
+                        //Hides the tab bar when full-screened
+                        if (openMeal == null && !showCategories) TabBar(tab) { tab = it }
                     }
                 ) { innerPadding ->
                     Box(Modifier.padding(innerPadding)) {
                         when {
+
+                            showCategories ->
+                                CategoriesScreen(
+                                    onBack = { showCategories = false },
+                                    favorites = favorites)
+
                             openMeal == Meal.BREAKFAST ->
                                 BreakfastScreen(onBack = { openMeal = null })
 
@@ -123,7 +134,9 @@ class MainActivity : ComponentActivity() {
                                 log = log,
                                 goal = profile.value.calorieGoal,
                                 // Only breakfast has a detail screen so far.
-                                onOpenMeal = { if (it == Meal.BREAKFAST) openMeal = it }
+                                onOpenMeal = { if (it == Meal.BREAKFAST) openMeal = it },
+                                onOpenCategories = {showCategories = true}
+
                             )
                         }
                     }
