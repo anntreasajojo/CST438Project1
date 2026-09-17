@@ -3,6 +3,7 @@ package com.example.cst438project1.database
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "favorites",
@@ -28,6 +29,8 @@ import androidx.room.Index
     ]
 )
 data class Favorite(
+    @PrimaryKey(autoGenerate = true)
+    val favoriteId: Int = 0,
     val userId: Int,
     val foodId: Int
 )

@@ -11,16 +11,16 @@ interface FavoriteDao {
     @Insert
     suspend fun insertFavorite(favorite: Favorite): Long
 
-    @Query("SELECT * FROM favorites WHERE id = :id")
-    suspend fun getFavoriteById(id: Int): Favorite?
+    @Query("SELECT * FROM favorites WHERE favoriteId = :favoriteId")
+    suspend fun getFavoriteById(favoriteId: Int): Favorite?
 
-    @Query("SELECT * FROM favorites WHERE user_id = :userId ORDER BY id DESC")
+    @Query("SELECT * FROM favorites WHERE user_id = :userId ORDER BY favoriteId DESC")
     suspend fun getFavoritesByUserId(userId: Int): List<Favorite>
 
-    @Query("SELECT * FROM favorites WHERE food_id = :foodId ORDER BY id DESC")
+    @Query("SELECT * FROM favorites WHERE food_id = :foodId ORDER BY favoriteId DESC")
     suspend fun getFavoritesByFoodId(foodId: Int): List<Favorite>
 
-    @Query("SELECT * FROM favorites ORDER BY id DESC")
+    @Query("SELECT * FROM favorites ORDER BY favoriteId DESC")
     suspend fun getAllFavorites(): List<Favorite>
 
     @Update
