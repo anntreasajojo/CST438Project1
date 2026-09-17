@@ -36,10 +36,7 @@ data class Entries (
     val userId: Int,
     @ColumnInfo(name = "food_id")
     val foodId: Int,
-    @ColumnInfo(name = "date")
     val date: String,
-    @ColumnInfo(name = "quantity")
     val quantity: Double,
-    @ColumnInfo(name = "counter")
     val counter: Int
 )

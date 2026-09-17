@@ -8,15 +8,10 @@ import androidx.room.PrimaryKey
 data class Food (
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    @ColumnInfo(name = "name")
     val name: String,
-    @ColumnInfo(name = "calories")
     val calories: Int,
-    @ColumnInfo(name = "fat")
     val fat: Double,
-    @ColumnInfo(name = "protein")
     val protein: Double,
-    @ColumnInfo(name = "carbs")
     val carbs: Double
 ) {
     override fun equals(other: Any?): Boolean {
