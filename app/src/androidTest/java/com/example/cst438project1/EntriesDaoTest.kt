@@ -71,7 +71,6 @@ class EntriesDaoTest {
             userId = userId,
             foodId = foodId,
             date = "2026-09-16",
-            quantity = 1.0,
             counter = 1
         )
 

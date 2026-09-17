@@ -37,6 +37,5 @@ data class Entries (
     @ColumnInfo(name = "food_id")
     val foodId: Int,
     val date: String,
-    val quantity: Double,
     val counter: Int
 )
