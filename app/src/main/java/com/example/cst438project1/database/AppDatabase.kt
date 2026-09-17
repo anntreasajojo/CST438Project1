@@ -20,13 +20,14 @@ class Converters {
 }
 
 @Database(
-    entities = [User::class],
+    entities = [User::class, Food::class],
     version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
+    abstract fun foodDao(): FoodDao
 
     companion object {
         @Volatile
@@ -50,3 +51,13 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
+
+
+// Render the page it's easier on my laptop
+//@Preview(device = Devices.PIXEL_7, showSystemUi = true)
+//@Composible
+//fun LoginScreenPreview() {
+//    AppTheme {
+//        LoginScreen()
+//    }
+//}
