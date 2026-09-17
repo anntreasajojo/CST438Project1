@@ -59,15 +59,8 @@ class MainActivity : ComponentActivity() {
 
                 val dao = remember { AppDatabase.getDatabase(applicationContext).userDao() }
                 var user by remember { mutableStateOf<User?>(null) }
-                var checked by remember { mutableStateOf(false) }
+                var registering by remember { mutableStateOf(false) }
                 val scope = rememberCoroutineScope()
-
-                // ponytail: reopening as the newest account stands in for signing
-                // in. Replace with the login screen once it exists.
-                LaunchedEffect(Unit) {
-                    user = dao.latestUser()
-                    checked = true
-                }
 
                 // The targets the rest of the app measures against belong to
                 // whoever is signed in.
@@ -82,14 +75,25 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // One query, so a spinner would only ever flash.
-                if (!checked) return@CST438Project1Theme
-
+                // Nothing is remembered between launches, so every start asks
+                // for a login. A new account goes straight in.
                 if (user == null) {
-                    RegisterScreen(
-                        dao = dao,
-                        onRegistered = { id -> scope.launch { user = dao.getUserById(id) } }
-                    )
+                    if (registering) {
+                        // The register screen's own back handler, for its second
+                        // step, is composed later and so takes priority.
+                        BackHandler { registering = false }
+                        RegisterScreen(
+                            dao = dao,
+                            onRegistered = { id -> scope.launch { user = dao.getUserById(id) } },
+                            onLogIn = { registering = false }
+                        )
+                    } else {
+                        LoginScreen(
+                            dao = dao,
+                            onLoggedIn = { user = it },
+                            onRegister = { registering = true }
+                        )
+                    }
                     return@CST438Project1Theme
                 }
 

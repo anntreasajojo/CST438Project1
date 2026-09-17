@@ -25,8 +25,7 @@ interface UserDao {
     @Query("SELECT COUNT(*) FROM users")
     suspend fun count(): Int
 
-    // Stands in for logging in until the login screen lands: the app reopens as
-    // whoever registered last.
+    // Whoever registered last. Tests use it to find the account just created.
     @Query("SELECT * FROM users ORDER BY id DESC LIMIT 1")
     suspend fun latestUser(): User?
 
