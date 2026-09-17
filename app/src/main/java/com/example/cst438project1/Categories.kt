@@ -59,8 +59,8 @@ val foods = listOf(
 // order of categories to show up in
 val categoryOrder = listOf("Breakfast", "Lunch", "Dinner", "Snacks")
 
-// converts a Foods from the list into a FoodEntry that FavoritesScreen understands
-// carbs/protein/fat are 0 for now until we get real data from the API (IF we get one)
+// converts a Food from the list into a FoodEntry that FavoritesScreen understands
+// carbs/protein/fat are 0 for now until we get real data from the API
 fun Food.toFoodEntry() = FoodEntry(
     name = this.name,
     calories = this.calories,
@@ -69,10 +69,82 @@ fun Food.toFoodEntry() = FoodEntry(
     fat = 0
 )
 
+// clickable header row for each category with a +/- toggle
+@Composable
+private fun CategoryHeader(category: String, isExpanded: Boolean, onToggle: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        // purple color (primary) from Theme.kt in ui.theme folder
+        Text(
+            text = category,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            if (isExpanded) "-" else "+",
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+    HorizontalDivider()
+}
+
+// card row for a single food item with heart button and image placeholder
+@Composable
+private fun FoodCard(
+    food: Food,
+    isFavorited: Boolean,
+    onTap: () -> Unit,
+    onFavoriteToggle: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+            .clickable { onTap() }
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = food.name)
+                Text(text = "${food.category} • ${food.calories} calories")
+            }
+
+            // heart icon button to add/remove from favorites
+            IconButton(onClick = onFavoriteToggle) {
+                Icon(
+                    // filled heart if favorited, outline if not
+                    imageVector = if (isFavorited) Icons.Filled.Favorite
+                    else Icons.Outlined.FavoriteBorder,
+                    contentDescription = if (isFavorited) "Remove from favorites"
+                    else "Add to favorites",
+                    // red if favorited, gray if not
+                    tint = if (isFavorited) Color.Red else Color.Gray
+                )
+            }
+
+            // stand-in for the food's image, swap for a real Image later
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .padding(horizontal = 8.dp)
+                    .background(Color.LightGray)
+            )
+        }
+    }
+}
+
 @Composable
 fun CategoriesScreen(
     onBack: () -> Unit = {},
-    // favorites list from MainActivity so both scenes share the same data
+    // favorites list from MainActivity so both screens share the same data
     favorites: SnapshotStateList<FoodEntry> = rememberFavorites()
 ) {
     // stores which food the user tapped on
@@ -81,21 +153,14 @@ fun CategoriesScreen(
     // stores which category headers are currently expanded
     var expandedCategories by remember { mutableStateOf(setOf<String>()) }
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
 
         // a button to go back to previous page
-        Button(onClick = onBack) {
-            Text("Back")
-        }
+        Button(onClick = onBack) { Text("Back") }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Browse by category",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        Text(text = "Browse by category", style = MaterialTheme.typography.headlineMedium)
 
         Text(
             text = "Tap a category to expand it, tap a food to see its details.",
@@ -113,35 +178,19 @@ fun CategoriesScreen(
                 val foodsInCategory = foods.filter { it.category == category }
 
                 // one row per category, this is the clickable header
-                // tap to expand/collapse a drop-down menu
                 item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                // toggles this category in/out of the expanded set when tapped
-                                // - removes it from the set, + adds it, doesn't change the original set
-                                expandedCategories = if (isExpanded) {
-                                    expandedCategories - category
-                                } else {
-                                    expandedCategories + category
-                                }
+                    CategoryHeader(
+                        category = category,
+                        isExpanded = isExpanded,
+                        onToggle = {
+                            // toggles this category in/out of the expanded set when tapped
+                            expandedCategories = if (isExpanded) {
+                                expandedCategories - category
+                            } else {
+                                expandedCategories + category
                             }
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        // purple color (primary) from Theme.kt in ui.theme folder
-                        Text(
-                            text = category,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            if (isExpanded) "-" else "+",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    HorizontalDivider()
+                        }
+                    )
                 }
 
                 // only actually adds these rows to the list if the category is expanded
@@ -149,57 +198,20 @@ fun CategoriesScreen(
                     items(foodsInCategory) { food ->
                         // check if this food is already in the favorites list
                         val isFavorited = favorites.any { it.name == food.name }
-
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp)
-                                .clickable { selectedFood = food }
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(text = food.name)
-                                    Text(text = "${food.category} • ${food.calories} calories")
+                        FoodCard(
+                            food = food,
+                            isFavorited = isFavorited,
+                            onTap = { selectedFood = food },
+                            onFavoriteToggle = {
+                                if (isFavorited) {
+                                    // remove it if already favorited
+                                    favorites.removeAll { it.name == food.name }
+                                } else {
+                                    // add it if not favorited yet
+                                    favorites.add(food.toFoodEntry())
                                 }
-
-                                // heart icon button to add/remove from favorites
-                                IconButton(onClick = {
-                                    if (isFavorited) {
-                                        // remove it if already favorited
-                                        favorites.removeAll { it.name == food.name }
-                                    } else {
-                                        // add it if not favorited yet
-                                        favorites.add(food.toFoodEntry())
-                                    }
-                                }) {
-                                    Icon(
-                                        // filled heart if favorited, outline if not
-                                        imageVector = if (isFavorited)
-                                            Icons.Filled.Favorite
-                                        else
-                                            Icons.Outlined.FavoriteBorder,
-                                        contentDescription = if (isFavorited)
-                                            "Remove from favorites"
-                                        else
-                                            "Add to favorites",
-                                        // red if favorited, gray if not
-                                        tint = if (isFavorited) Color.Red else Color.Gray
-                                    )
-                                }
-
-                                // stand-in for the food's image, swap for a real Image later
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .padding(horizontal = 8.dp)
-                                        .background(Color.LightGray)
-                                )
                             }
-                        }
+                        )
                     }
                 }
             }
@@ -209,11 +221,7 @@ fun CategoriesScreen(
         // show details for whichever food was tapped
         selectedFood?.let { food ->
             Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Selected food",
-                style = MaterialTheme.typography.titleLarge
-            )
+            Text(text = "Selected food", style = MaterialTheme.typography.titleLarge)
             Text(text = "Name: ${food.name}")
             Text(text = "Category: ${food.category}")
             Text(text = "Calories: ${food.calories}")
