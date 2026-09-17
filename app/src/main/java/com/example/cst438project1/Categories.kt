@@ -235,3 +235,4 @@ fun CategoriesScreen(
 fun CategoriesScreenPreview() {
     CategoriesScreen()
 }
+
