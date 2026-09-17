@@ -38,7 +38,15 @@ data class DinnerFood(
 // adds up and returns the total calories of all foods in the list
 // list contains DinnerFood objects
 fun calculateTotalCalories(foods: List<DinnerFood>): Int {
-    return foods.sumOf { food -> food.calories }
+    var totalCalories = 0
+
+    for (food in foods) {
+        if (food.calories >= 0) {
+            totalCalories += food.calories
+        }
+    }
+
+    return totalCalories
 }
 
 @Composable

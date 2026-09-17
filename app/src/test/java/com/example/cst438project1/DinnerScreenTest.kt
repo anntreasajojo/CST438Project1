@@ -84,7 +84,7 @@ class DinnerScreenTest {
     fun calculateTotalCalories_onlyNegativeCalories_returnsZero() {
         val foods = listOf(
             DinnerFood("Invalid food", -100),
-            DinnerFood("Another invalid food", -50)
+            DinnerFood("Invalid food x2", -50)
         )
 
         val result = calculateTotalCalories(foods)
