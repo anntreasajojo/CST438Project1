@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -117,7 +118,9 @@ fun LandingScreen(
     log: Map<Meal, SnapshotStateList<FoodEntry>> = rememberMealLog(),
     goal: Int = CALORIE_GOAL,
     onOpenMeal: (Meal) -> Unit = {},
-    today: LocalDate = LocalDate.now()
+    today: LocalDate = LocalDate.now(),
+    //Properly tracks Categories page
+    onOpenCategories: () -> Unit = {},
 ) {
     val day = log.values.flatten().macros()
 
@@ -141,6 +144,12 @@ fun LandingScreen(
         } else {
             Spacer(Modifier.height(36.dp))
         }
+
+        Button(onClick = onOpenCategories) {
+            Text("Browse Categories")
+        }
+        Spacer(Modifier.height(16.dp))
+
         Meal.entries.forEach { meal ->
             MealSection(
                 meal = meal,
