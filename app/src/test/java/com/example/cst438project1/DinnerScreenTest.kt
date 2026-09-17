@@ -10,6 +10,7 @@ class DinnerScreenTest {
     // empty lists
     // zero calories foods
     // repeated foods
+    // foods with negative calories
 
     @Test
     fun calculateTotalCalories_twoFoods_returnsCorrectTotal() {
@@ -77,5 +78,17 @@ class DinnerScreenTest {
         val result = calculateTotalCalories(foods)
 
         assertEquals(210, result)
+    }
+
+    @Test
+    fun calculateTotalCalories_onlyNegativeCalories_returnsZero() {
+        val foods = listOf(
+            DinnerFood("Invalid food", -100),
+            DinnerFood("Another invalid food", -50)
+        )
+
+        val result = calculateTotalCalories(foods)
+
+        assertEquals(0, result)
     }
 }
