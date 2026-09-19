@@ -14,10 +14,10 @@ interface FavoriteDao {
     @Query("SELECT * FROM favorites WHERE favoriteId = :favoriteId")
     suspend fun getFavoriteById(favoriteId: Int): Favorite?
 
-    @Query("SELECT * FROM favorites WHERE user_id = :userId ORDER BY favoriteId DESC")
+    @Query("SELECT * FROM favorites WHERE userId = :userId ORDER BY favoriteId DESC")
     suspend fun getFavoritesByUserId(userId: Int): List<Favorite>
 
-    @Query("SELECT * FROM favorites WHERE food_id = :foodId ORDER BY favoriteId DESC")
+    @Query("SELECT * FROM favorites WHERE foodId = :foodId ORDER BY favoriteId DESC")
     suspend fun getFavoritesByFoodId(foodId: Int): List<Favorite>
 
     @Query("SELECT * FROM favorites ORDER BY favoriteId DESC")
@@ -29,7 +29,7 @@ interface FavoriteDao {
     @Delete
     suspend fun deleteFavorite(favorite: Favorite)
 
-    @Query("DELETE FROM favorites WHERE user_id = :userId")
+    @Query("DELETE FROM favorites WHERE userId = :userId")
     suspend fun deleteFavoritesByUserId(userId: Int)
 
     @Query("DELETE FROM favorites")

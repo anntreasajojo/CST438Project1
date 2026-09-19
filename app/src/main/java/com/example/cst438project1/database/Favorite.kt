@@ -11,21 +11,21 @@ import androidx.room.PrimaryKey
         ForeignKey(
             entity = User::class,
             parentColumns = ["id"],
-            childColumns = ["user_id"],
+            childColumns = ["userId"],
             onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = Food::class,
             parentColumns = ["id"],
-            childColumns = ["food_id"],
+            childColumns = ["foodId"],
             onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE
         )
     ],
     indices = [
-        Index(value = ["user_id"]),
-        Index(value = ["food_id"])
+        Index(value = ["userId"]),
+        Index(value = ["foodId"])
     ]
 )
 data class Favorite(
