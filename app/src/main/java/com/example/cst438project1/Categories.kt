@@ -41,32 +41,35 @@ import androidx.compose.ui.unit.dp
 data class Food(
     val name: String,
     val calories: Int,
-    val category: String
+    val category: String,
+    val carbs: Int = 0,
+    val protein: Int = 0,
+    val fat: Int = 0
 )
 
 // random data, change for API stuff later.
 val foods = listOf(
-    Food("Eggs", 70, "Breakfast"),
-    Food("Oatmeal", 150, "Breakfast"),
-    Food("Chicken Sandwich", 450, "Lunch"),
-    Food("Caesar Salad", 500, "Lunch"),
-    Food("Spaghetti", 300, "Dinner"),
-    Food("Salmon", 200, "Dinner"),
-    Food("Apple", 95, "Snacks"),
-    Food("Protein Shake", 150, "Snacks")
+    Food("Eggs", 70, "Breakfast", carbs = 0, protein = 6, fat = 5),
+    Food("Oatmeal", 150, "Breakfast", carbs = 27, protein = 5, fat = 3),
+    Food("Chicken Sandwich", 450, "Lunch", carbs = 40, protein = 30, fat = 15),
+    Food("Caesar Salad", 500, "Lunch", carbs = 20, protein = 10, fat = 40),
+    Food("Spaghetti", 300, "Dinner", carbs = 55, protein = 10, fat = 5),
+    Food("Salmon", 200, "Dinner", carbs = 0, protein = 28, fat = 10),
+    Food("Apple", 95, "Snacks", carbs = 25, protein = 0, fat = 0),
+    Food("Protein Shake", 150, "Snacks", carbs = 10, protein = 25, fat = 3)
 )
 
 // order of categories to show up in
 val categoryOrder = listOf("Breakfast", "Lunch", "Dinner", "Snacks")
 
-// converts a Food from the list into a FoodEntry that FavoritesScreen understands
+// converts Food from the list into a FoodEntry that FavoritesScreen understands
 // carbs/protein/fat are 0 for now until we get real data from the API
 fun Food.toFoodEntry() = FoodEntry(
     name = this.name,
     calories = this.calories,
-    carbs = 0,
-    protein = 0,
-    fat = 0
+    carbs = this.carbs,
+    protein = this.protein,
+    fat = this.fat
 )
 
 // clickable header row for each category with a +/- toggle
