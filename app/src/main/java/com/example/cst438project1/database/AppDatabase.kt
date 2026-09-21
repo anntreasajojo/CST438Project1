@@ -2,13 +2,18 @@ package com.example.cst438project1.database
 
 import android.content.Context
 import androidx.room.Database
+import androidx.room.AutoMigration
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import com.example.cst438project1.Meal
 
 // Room stores primitives, so the onboarding enums travel as their names.
 class Converters {
+    @TypeConverter fun fromMeal(value: Meal): String = value.name
+    @TypeConverter fun toMeal(value: String): Meal = Meal.valueOf(value)
+
     @TypeConverter fun fromSex(value: Sex): String = value.name
     @TypeConverter fun toSex(value: String): Sex = Sex.valueOf(value)
 
@@ -20,14 +25,16 @@ class Converters {
 }
 
 @Database(
-    entities = [User::class, Food::class],
-    version = 2,
+    entities = [User::class, Food::class, MealLogEntry::class],
+    version = 3,
+    autoMigrations = [AutoMigration(from = 2, to = 3)],
     exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun foodDao(): FoodDao
+    abstract fun mealLogDao(): MealLogDao
 
     companion object {
         @Volatile
@@ -40,10 +47,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app_database"
                 )
-                    // Only test accounts exist so far, so a schema change wipes
-                    // the database instead of costing a hand-written migration.
-                    // Freeze the schema or write a real Migration before the demo.
-                    .fallbackToDestructiveMigration(dropAllTables = true)
+                    // Version 2 upgrades without losing accounts or food data.
+                    // Unsupported older schemas are preserved, never wiped.
                     .build()
                 INSTANCE = instance
                 instance
