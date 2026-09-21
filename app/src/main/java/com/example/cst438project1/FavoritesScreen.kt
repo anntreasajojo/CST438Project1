@@ -52,6 +52,7 @@ fun rememberFavorites(): SnapshotStateList<FoodEntry> = remember {
 @Composable
 fun FavoritesScreen(
     favorites: SnapshotStateList<FoodEntry>,
+    saving: Boolean = false,
     onAddTo: (Meal, FoodEntry) -> Unit = { _, _ -> }
 ) {
     Column(
@@ -94,6 +95,7 @@ fun FavoritesScreen(
             favorites.forEach { favorite ->
                 FavoriteRow(
                     favorite = favorite,
+                    saving = saving,
                     onAddTo = { meal -> onAddTo(meal, favorite) },
                     onRemove = { favorites.remove(favorite) }
                 )
@@ -105,6 +107,7 @@ fun FavoritesScreen(
 @Composable
 private fun FavoriteRow(
     favorite: FoodEntry,
+    saving: Boolean,
     onAddTo: (Meal) -> Unit,
     onRemove: () -> Unit
 ) {
@@ -156,6 +159,7 @@ private fun FavoriteRow(
                         MealChip(
                             meal = meal,
                             modifier = Modifier.weight(1f),
+                            enabled = !saving,
                             onClick = {
                                 onAddTo(meal)
                                 open = false
@@ -185,11 +189,11 @@ private fun FavoriteRow(
 }
 
 @Composable
-private fun MealChip(meal: Meal, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun MealChip(meal: Meal, modifier: Modifier = Modifier, enabled: Boolean = true, onClick: () -> Unit) {
     Box(
         modifier = modifier
             .border(1.dp, meal.accent, RoundedCornerShape(3.dp))
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
             .padding(vertical = 9.dp),
         contentAlignment = Alignment.Center
     ) {
