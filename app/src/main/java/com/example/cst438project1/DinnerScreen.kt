@@ -1,5 +1,4 @@
 package com.example.cst438project1
-
 import androidx.compose.foundation.layout.Column
 // needed to create empty space between stuff
 import androidx.compose.foundation.layout.Spacer
@@ -31,31 +30,41 @@ import androidx.compose.ui.unit.dp
 
 // food data class
 // structure for storing one food item
-data class BreakfastFood(
+data class DinnerFood(
     val name: String,
     val calories: Int
 )
 
+// adds up and returns the total calories of all foods in the list
+// list contains DinnerFood objects
+fun calculateTotalCalories(foods: List<DinnerFood>): Int {
+    var totalCalories = 0
+
+    for (food in foods) {
+        if (food.calories >= 0) {
+            totalCalories += food.calories
+        }
+    }
+
+    return totalCalories
+}
+
 @Composable
-fun BreakfastScreen(onBack: () -> Unit = {}) {
+fun DinnerScreen(onBack: () -> Unit = {}) {
     // `foodName` stores what the user types
     // `remember` keyword is used to keep the value when screen updates
     var foodName by remember { mutableStateOf("") }
 
-    // temporary breakfast data
-    // represent breakfast items already entered by the user
+    // temporary Dinner data
+    // represent Dinner items already entered by the user
     // --this list should eventually populate from database--
-    val breakfastFoods = listOf(
-        BreakfastFood("Banana", 105),
-        BreakfastFood("Oatmeal", 150)
+    val dinnerFoods = listOf(
+        DinnerFood("Banana", 105),
+        DinnerFood("Oatmeal", 150)
     )
 
-    // this adds the calories from every food in the breakfast list
-    var totalCalories = 0
-
-    for (food in breakfastFoods){
-        totalCalories = totalCalories + food.calories
-    }
+    // this adds the calories from every food in the dinner list
+    val totalCalories = calculateTotalCalories(dinnerFoods)
 
     // START OF THE MAIN COLUMN
     Column(
@@ -70,7 +79,7 @@ fun BreakfastScreen(onBack: () -> Unit = {}) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Add your breakfast!",
+            text = "Add your dinner!",
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -103,24 +112,24 @@ fun BreakfastScreen(onBack: () -> Unit = {}) {
             Text("Submit Food")
         }
 
-        // add space 
+        // add space
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Your breakfast",
+            text = "Your dinner",
             style = MaterialTheme.typography.titleLarge
         )
 
-        // display value for total calories from the breakfastFoods
+        // display value for total calories from the dinnerFoods
         Text(text = "Total calories: $totalCalories")
 
         // add some space
         Spacer(modifier = Modifier.height(8.dp))
 
-        // our vertically scrollable list 
+        // our vertically scrollable list
         LazyColumn {
-            // goes through every item in breakfastFoods
-            items(breakfastFoods) { food ->
+            // goes through every item in dinnerFoods
+            items(dinnerFoods) { food ->
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                 ) {
@@ -138,6 +147,6 @@ fun BreakfastScreen(onBack: () -> Unit = {}) {
 // preview without running the app
 @Preview(showBackground = true)
 @Composable
-fun BreakfastScreenPreview() {
-    BreakfastScreen()
+fun dinnerScreenPreview() {
+    DinnerScreen()
 }

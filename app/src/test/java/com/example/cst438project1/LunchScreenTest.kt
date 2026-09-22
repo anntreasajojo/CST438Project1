@@ -19,6 +19,6 @@ class LunchScreenTest {
 
     @Test
     fun calculateTotalCalories_emptyListReturnsZero() {
-        assertEquals(0, calculateTotalCalories(emptyList()))
+        assertEquals(0, calculateTotalCalories(emptyList<LunchFood>()))
     }
 }

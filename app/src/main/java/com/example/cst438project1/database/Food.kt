@@ -14,3 +14,4 @@ data class Food(
     val protein: Double,
     val carbs: Double
 )
+

@@ -23,6 +23,9 @@ interface FoodDao {
     @Query("SELECT * FROM foods WHERE name = :name")
     suspend fun getFoodByName(name: String): Food?
 
+    @Query("SELECT * FROM foods WHERE calories = :calories")
+    suspend fun getFoodByCalories(calories: Int): Food?
+
     @Update
     suspend fun updateFood(food: Food)
 

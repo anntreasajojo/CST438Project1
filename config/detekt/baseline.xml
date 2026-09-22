@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:RegisterScreen.kt$@Composable fun RegisterScreen( dao: UserDao, onRegistered: (Int) -&gt; Unit, modifier: Modifier = Modifier, onLogIn: () -&gt; Unit = {} )</ID>
+    <ID>LongMethod:Categories.kt$@Composable fun CategoriesScreen(onBack: () -&gt; Unit = {})</ID>
+    <ID>LongMethod:FavoritesScreen.kt$@Composable private fun FavoriteRow( favorite: FoodEntry, saving: Boolean, onAddTo: (Meal) -&gt; Unit, onRemove: () -&gt; Unit )</ID>
+    <ID>LongMethod:LandingScreen.kt$@Composable private fun MealSection( meal: Meal, entries: List&lt;MealLogEntry&gt;, isLast: Boolean, onOpen: () -&gt; Unit, onRemove: (Int) -&gt; Unit, saving: Boolean )</ID>
+    <ID>LongMethod:MainActivity.kt$MainActivity$override fun onCreate(savedInstanceState: Bundle?)</ID>
+    <ID>LongMethod:ProfileScreen.kt$@Composable fun ProfileScreen( profile: MutableState&lt;Profile&gt;, today: Macros = Macros(0, 0, 0, 0) )</ID>
+    <ID>LongMethod:RegisterScreen.kt$@Composable fun RegisterScreen( dao: UserDao, onRegistered: (Int) -&gt; Unit, modifier: Modifier = Modifier, onLogIn: () -&gt; Unit = {} )</ID>
+    <ID>LongMethod:RegisterScreen.kt$@Composable private fun OnboardingStep( age: String, onAge: (String) -&gt; Unit, sex: Sex, onSex: (Sex) -&gt; Unit, height: String, onHeight: (String) -&gt; Unit, weight: String, onWeight: (String) -&gt; Unit, activity: Activity, onActivity: (Activity) -&gt; Unit, goal: Goal, onGoal: (Goal) -&gt; Unit, calories: String, carbs: String, protein: String, fat: String, onTarget: (Target, String) -&gt; Unit, anyEdited: Boolean, onRecalculate: () -&gt; Unit, enabled: Boolean )</ID>
+    <ID>LongParameterList:NutritionTargets.kt$( sex: Sex, weightKg: Int, heightCm: Int, age: Int, activity: Activity, goal: Goal )</ID>
+    <ID>MagicNumber:Categories.kt$150</ID>
+    <ID>MagicNumber:Categories.kt$200</ID>
+    <ID>MagicNumber:Categories.kt$300</ID>
+    <ID>MagicNumber:Categories.kt$450</ID>
+    <ID>MagicNumber:Categories.kt$500</ID>
+    <ID>MagicNumber:Categories.kt$70</ID>
+    <ID>MagicNumber:Categories.kt$95</ID>
+  </CurrentIssues>
+</SmellBaseline>

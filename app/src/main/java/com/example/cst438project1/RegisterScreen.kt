@@ -18,13 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,10 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,17 +51,21 @@ import java.util.Locale
 // Validation lives outside the composables so it can be tested without a screen.
 // Each returns the message to show, or null when the value is fine.
 
+internal const val USERNAME_MIN = 3
+internal const val USERNAME_MAX = 20
+internal const val PASSWORD_MIN = 8
+
 internal fun usernameError(value: String): String? = when {
     value.isEmpty() -> null
-    value.length < 3 -> "At least 3 characters."
-    value.length > 20 -> "At most 20 characters."
+    value.length < USERNAME_MIN -> "At least $USERNAME_MIN characters."
+    value.length > USERNAME_MAX -> "At most $USERNAME_MAX characters."
     !value.all { it.isLetterOrDigit() || it == '_' } -> "Letters, numbers and _ only."
     else -> null
 }
 
 internal fun passwordError(value: String): String? = when {
     value.isEmpty() -> null
-    value.length < 8 -> "At least 8 characters."
+    value.length < PASSWORD_MIN -> "At least $PASSWORD_MIN characters."
     else -> null
 }
 
@@ -94,9 +89,13 @@ internal val HEIGHT_RANGE = 100..250
 internal val WEIGHT_RANGE = 30..300
 
 internal fun rangeError(value: String, range: IntRange, unit: String): String? {
-    if (value.isEmpty()) return null
-    val number = value.toIntOrNull() ?: return "Numbers only."
-    return if (number in range) null else "${range.first}-${range.last} $unit."
+    val number = value.toIntOrNull()
+    return when {
+        value.isEmpty() -> null
+        number == null -> "Numbers only."
+        number in range -> null
+        else -> "${range.first}-${range.last} $unit."
+    }
 }
 
 // Which of the four target fields the user has typed into. Those keep their
@@ -107,7 +106,8 @@ private enum class Target { CALORIES, CARBS, PROTEIN, FAT }
 fun RegisterScreen(
     dao: UserDao,
     onRegistered: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLogIn: () -> Unit = {}
 ) {
     var onboarding by remember { mutableStateOf(false) }
 
@@ -247,7 +247,7 @@ fun RegisterScreen(
                                 )
                             )
                             onRegistered(id.toInt())
-                        } catch (e: SQLiteConstraintException) {
+                        } catch (ignored: SQLiteConstraintException) {
                             // Someone took the name between the check and here.
                             takenName = username
                             onboarding = false
@@ -291,6 +291,10 @@ fun RegisterScreen(
                     }
                 }
             )
+            Spacer(Modifier.height(8.dp))
+            TextButton(onClick = onLogIn, modifier = Modifier.fillMaxWidth()) {
+                Text("I already have an account", fontSize = 13.sp, color = MorningAmber)
+            }
         }
     }
 }
@@ -445,57 +449,6 @@ private fun OnboardingStep(
     }
 }
 
-// Field plus the message under it, so no caller has to lay that out again.
-@Composable
-private fun LabelledField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    error: String?,
-    modifier: Modifier = Modifier,
-    numeric: Boolean = false,
-    masked: Boolean = false
-) {
-    Column(modifier) {
-        if (masked) {
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                label = { Text(label, fontSize = 12.sp) },
-                singleLine = true,
-                isError = error != null,
-                shape = RoundedCornerShape(4.dp),
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MorningAmber,
-                    focusedLabelColor = MorningAmber,
-                    cursorColor = MorningAmber,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
-            Field(
-                value = value,
-                onValueChange = onValueChange,
-                label = label,
-                accent = MorningAmber,
-                modifier = Modifier.fillMaxWidth(),
-                numeric = numeric
-            )
-        }
-        if (error != null) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = error,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-    }
-}
-
 // One row of pills. Wrapping means the same component handles three short
 // options and five long ones.
 @OptIn(ExperimentalLayoutApi::class)
@@ -547,24 +500,6 @@ private fun <T> Choice(
     }
 }
 
-@Composable
-private fun PrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        shape = RoundedCornerShape(4.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.onBackground,
-            contentColor = MaterialTheme.colorScheme.background
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp)
-    ) {
-        Text(text, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-    }
-}
-
 internal fun Sex.readable() = when (this) {
     Sex.MALE -> "Male"
     Sex.FEMALE -> "Female"
@@ -595,7 +530,7 @@ fun RegisterScreenPreview() {
 }
 
 // Lets the preview render without building a database.
-private object NoopUserDao : UserDao {
+internal object NoopUserDao : UserDao {
     override suspend fun insertUser(user: User) = 1L
     override suspend fun getUserById(id: Int): User? = null
     override suspend fun getUserByUsername(username: String): User? = null

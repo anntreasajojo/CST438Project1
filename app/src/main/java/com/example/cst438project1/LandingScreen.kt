@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -28,10 +29,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -52,6 +51,7 @@ import com.example.cst438project1.ui.theme.CST438Project1Theme
 import com.example.cst438project1.ui.theme.EveningIndigo
 import com.example.cst438project1.ui.theme.MiddaySage
 import com.example.cst438project1.ui.theme.MorningAmber
+import com.example.cst438project1.database.MealLogEntry
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -86,8 +86,8 @@ enum class Meal(
     val hasScreen: Boolean
 ) {
     BREAKFAST("Breakfast", "Morning", MorningAmber, hasScreen = true),
-    LUNCH("Lunch", "Midday", MiddaySage, hasScreen = false),
-    DINNER("Dinner", "Evening", EveningIndigo, hasScreen = false),
+    LUNCH("Lunch", "Midday", MiddaySage, hasScreen = true),
+    DINNER("Dinner", "Evening", EveningIndigo, hasScreen = true),
     SNACKS("Snacks", "Anytime", AnytimeClay, hasScreen = false)
 }
 
@@ -98,28 +98,18 @@ internal val Display = FontFamily.Serif
 
 internal fun Int.grouped() = "%,d".format(this)
 
-// Held above the screen so it survives navigating into a meal and back.
-// Swap for a repository once the database lands.
-@Composable
-fun rememberMealLog(): Map<Meal, SnapshotStateList<FoodEntry>> = remember {
-    Meal.entries.associateWith { meal ->
-        mutableStateListOf<FoodEntry>().apply {
-            if (meal == Meal.BREAKFAST) {
-                add(FoodEntry("Banana", 105, 27, 1, 0))
-                add(FoodEntry("Oatmeal", 150, 27, 5, 3))
-            }
-        }
-    }
-}
-
 @Composable
 fun LandingScreen(
-    log: Map<Meal, SnapshotStateList<FoodEntry>> = rememberMealLog(),
+    log: List<MealLogEntry> = emptyList(),
     goal: Int = CALORIE_GOAL,
     onOpenMeal: (Meal) -> Unit = {},
-    today: LocalDate = LocalDate.now()
+    today: LocalDate = LocalDate.now(),
+    //Properly tracks Categories page
+    onOpenCategories: () -> Unit = {},
+    onRemove: (Int) -> Unit = {},
+    saving: Boolean = false,
 ) {
-    val day = log.values.flatten().macros()
+    val day = log.map { it.food }.macros()
 
     Column(
         modifier = Modifier
@@ -141,12 +131,20 @@ fun LandingScreen(
         } else {
             Spacer(Modifier.height(36.dp))
         }
+
+        Button(onClick = onOpenCategories) {
+            Text("Browse Categories")
+        }
+        Spacer(Modifier.height(16.dp))
+
         Meal.entries.forEach { meal ->
             MealSection(
                 meal = meal,
-                entries = log.getValue(meal),
+                entries = log.filter { it.meal == meal },
                 isLast = meal == Meal.entries.last(),
-                onOpen = { onOpenMeal(meal) }
+                onOpen = { onOpenMeal(meal) },
+                onRemove = onRemove,
+                saving = saving
             )
         }
     }
@@ -183,7 +181,7 @@ private fun DayHeader(today: LocalDate, day: Macros, goal: Int) {
         )
     }
     Spacer(Modifier.height(14.dp))
-    ProgressRule(day.calories.toFloat() / goal)
+    ProgressRule(if (goal > 0) day.calories.toFloat() / goal else 0f)
     Spacer(Modifier.height(20.dp))
     Row(
         Modifier
@@ -247,18 +245,20 @@ internal fun VerticalHairline() {
 @Composable
 private fun MealSection(
     meal: Meal,
-    entries: SnapshotStateList<FoodEntry>,
+    entries: List<MealLogEntry>,
     isLast: Boolean,
-    onOpen: () -> Unit
+    onOpen: () -> Unit,
+    onRemove: (Int) -> Unit,
+    saving: Boolean
 ) {
-    var pendingRemoval by remember { mutableStateOf<FoodEntry?>(null) }
-    val totals = entries.macros()
+    var pendingRemoval by remember { mutableStateOf<MealLogEntry?>(null) }
+    val totals = entries.map { it.food }.macros()
     val line = MaterialTheme.colorScheme.outline
 
     pendingRemoval?.let { entry ->
         AlertDialog(
             onDismissRequest = { pendingRemoval = null },
-            title = { Text("Remove ${entry.name}?") },
+            title = { Text("Remove ${entry.food.name}?") },
             text = {
                 Text(
                     text = "Removes it from ${meal.label.lowercase(Locale.getDefault())} " +
@@ -267,8 +267,8 @@ private fun MealSection(
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
-                    entries.remove(entry)
+                TextButton(enabled = !saving, onClick = {
+                    onRemove(entry.id)
                     pendingRemoval = null
                 }) {
                     Text("Remove", color = meal.accent, fontWeight = FontWeight.Medium)
@@ -318,7 +318,7 @@ private fun MealSection(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(onClick = onOpen),
+                    .clickable(enabled = meal.hasScreen, onClick = onOpen),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(Modifier.weight(1f)) {
@@ -357,7 +357,7 @@ private fun MealSection(
                 )
             } else {
                 entries.forEach { entry ->
-                    EntryRow(entry, onRemove = { pendingRemoval = entry })
+                    EntryRow(entry.food, onRemove = { pendingRemoval = entry })
                 }
             }
 
@@ -418,7 +418,9 @@ private fun EntryRow(entry: FoodEntry, onRemove: () -> Unit) {
 }
 
 // Keeps the numeric fields numeric, so there is no error state to explain.
-internal fun String.digits() = filter { it.isDigit() }.take(5)
+private const val MAX_DIGITS = 5
+
+internal fun String.digits() = filter { it.isDigit() }.take(MAX_DIGITS)
 
 @Composable
 internal fun Field(
