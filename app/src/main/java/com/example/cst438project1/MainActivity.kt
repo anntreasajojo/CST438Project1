@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
 }
 
 // This is the existing state-based navigation, with one shared DB write path.
-@Suppress("LongMethod")
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 @Composable
 internal fun SignedInApp(user: User, dao: MealLogDao) {
     var tab by rememberSaveable { mutableStateOf(Tab.TODAY) }
