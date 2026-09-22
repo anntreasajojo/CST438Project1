@@ -142,6 +142,8 @@ internal fun SignedInApp(user: User, dao: MealLogDao) {
                     onBack = { showCategories = false }, favorites = favorites
                 )
                 openMeal == Meal.BREAKFAST -> BreakfastScreen(onBack = { openMeal = null })
+                openMeal == Meal.LUNCH-> LunchScreen(onBack = { openMeal = null })
+                openMeal == Meal.DINNER -> DinnerScreen(onBack = { openMeal = null })
                 tab == Tab.FAVORITES -> FavoritesScreen(
                     favorites = favorites, saving = saving,
                     onAddTo = { meal, food ->
