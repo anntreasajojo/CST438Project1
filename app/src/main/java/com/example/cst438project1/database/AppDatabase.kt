@@ -20,7 +20,7 @@ class Converters {
 }
 
 @Database(
-    entities = [User::class, Food::class, Entries::class, Favorite::class],
+    entities = [User::class, Food::class, Favorite::class],
     version = 4,
     exportSchema = true
 )
@@ -28,7 +28,6 @@ class Converters {
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun foodDao(): FoodDao
-    abstract fun entriesDao(): EntriesDao
     abstract fun favoriteDao(): FavoriteDao
 
     companion object {
