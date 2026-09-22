@@ -86,8 +86,8 @@ enum class Meal(
     val hasScreen: Boolean
 ) {
     BREAKFAST("Breakfast", "Morning", MorningAmber, hasScreen = true),
-    LUNCH("Lunch", "Midday", MiddaySage, hasScreen = false),
-    DINNER("Dinner", "Evening", EveningIndigo, hasScreen = false),
+    LUNCH("Lunch", "Midday", MiddaySage, hasScreen = true),
+    DINNER("Dinner", "Evening", EveningIndigo, hasScreen = true),
     SNACKS("Snacks", "Anytime", AnytimeClay, hasScreen = false)
 }
 

@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
 }
 
 // This is the existing state-based navigation, with one shared DB write path.
-@Suppress("LongMethod")
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 @Composable
 internal fun SignedInApp(user: User, dao: MealLogDao) {
     var tab by rememberSaveable { mutableStateOf(Tab.TODAY) }
@@ -142,6 +142,8 @@ internal fun SignedInApp(user: User, dao: MealLogDao) {
                     onBack = { showCategories = false }, favorites = favorites
                 )
                 openMeal == Meal.BREAKFAST -> BreakfastScreen(onBack = { openMeal = null })
+                openMeal == Meal.LUNCH-> LunchScreen(onBack = { openMeal = null })
+                openMeal == Meal.DINNER -> DinnerScreen(onBack = { openMeal = null })
                 tab == Tab.FAVORITES -> FavoritesScreen(
                     favorites = favorites, saving = saving,
                     onAddTo = { meal, food ->
