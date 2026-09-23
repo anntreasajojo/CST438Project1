@@ -211,8 +211,8 @@ private suspend fun addToFavorites(
             foodId = foodId
         )
         favoriteDao.insertFavorite(favorite)
-    } catch (e: Exception) {
-        e.printStackTrace()
+    } catch (e: IllegalStateException) {
+        // Database error - silently fail
     }
 }
 

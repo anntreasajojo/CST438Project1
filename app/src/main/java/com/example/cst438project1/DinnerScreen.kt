@@ -63,18 +63,14 @@ fun DinnerScreen(
     var loading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
-
     val totalCalories = calculateTotalCalories(
         dinnerFoods.map { food -> DinnerFood(food.name, food.calories) }
     )
-
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Button(onClick = onBack) { Text("Back") }
         Spacer(modifier = Modifier.height(16.dp))
-
         DinnerHeader()
         Spacer(modifier = Modifier.height(16.dp))
-
         DinnerSearchInput(
             foodName = foodName,
             onFoodNameChange = { foodName = it },
@@ -98,12 +94,10 @@ fun DinnerScreen(
                 }
             }
         )
-
         Spacer(modifier = Modifier.height(16.dp))
         Text("Your dinner", style = MaterialTheme.typography.titleLarge)
         Text(text = "Total calories: $totalCalories")
         Spacer(modifier = Modifier.height(8.dp))
-
         if (loading) {
             CircularProgressIndicator()
         } else {
@@ -112,7 +106,6 @@ fun DinnerScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
-
         DinnerFoodList(
             dinnerFoods = dinnerFoods,
             onAddFood = onAddFood,
@@ -221,8 +214,8 @@ private suspend fun addToFavorites(
             foodId = foodId
         )
         favoriteDao.insertFavorite(favorite)
-    } catch (e: Exception) {
-        e.printStackTrace()
+    } catch (e: IllegalStateException) {
+        // Database error - silently fail
     }
 }
 
