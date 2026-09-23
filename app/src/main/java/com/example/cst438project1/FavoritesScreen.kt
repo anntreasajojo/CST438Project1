@@ -124,19 +124,6 @@ fun FavoritesScreen(
     onAddTo: (Meal, FoodEntry) -> Unit = { _, _ -> }
 ) {
     val scope = rememberCoroutineScope()
-    val removeFavorite: (FoodEntry) -> Unit = { favorite ->
-        favorites.remove(favorite)
-        if (favoriteDao != null && userId > 0 && favorite.favoriteId > 0) {
-            scope.launch {
-                val favoriteRow = favoriteDao.getFavoritesByUserId(userId)
-                    .firstOrNull { it.foodId == favorite.foodId }
-                if (favoriteRow != null) {
-                    favoriteDao.deleteFavorite(favoriteRow)
-                }
-            }
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -179,8 +166,35 @@ fun FavoritesScreen(
                     favorite = favorite,
                     saving = saving,
                     onAddTo = { meal -> onAddTo(meal, favorite) },
-                    onRemove = { removeFavorite(favorite) }
+                    onRemove = {
+                        removeFavorite(
+                            favorite = favorite,
+                            favorites = favorites,
+                            favoriteDao = favoriteDao,
+                            userId = userId,
+                            scope = scope
+                        )
+                    }
                 )
+            }
+        }
+    }
+}
+
+private fun removeFavorite(
+    favorite: FoodEntry,
+    favorites: SnapshotStateList<FoodEntry>,
+    favoriteDao: FavoriteDao?,
+    userId: Int,
+    scope: kotlinx.coroutines.CoroutineScope
+) {
+    favorites.remove(favorite)
+    if (favoriteDao != null && userId > 0 && favorite.favoriteId > 0) {
+        scope.launch {
+            val favoriteRow = favoriteDao.getFavoritesByUserId(userId)
+                .firstOrNull { it.foodId == favorite.foodId }
+            if (favoriteRow != null) {
+                favoriteDao.deleteFavorite(favoriteRow)
             }
         }
     }
