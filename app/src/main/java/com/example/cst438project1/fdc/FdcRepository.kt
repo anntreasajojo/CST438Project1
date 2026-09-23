@@ -32,6 +32,6 @@ class FdcRepository(
     }
 
     companion object {
-        const val TODO_API_KEY_VALUE = "TODO_ADD_FDC_API_KEY"
+        const val TODO_API_KEY_VALUE = "jm1CkmTFOs3ywJpl3sCM3O6vlev4yg1IigaaggJ1"
     }
 }

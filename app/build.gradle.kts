@@ -8,7 +8,7 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
-val fdcApiKey = providers.gradleProperty("FDC_API_KEY").orNull ?: "TODO_ADD_FDC_API_KEY"
+val fdcApiKey = providers.gradleProperty("FDC_API_KEY").orNull ?: "jm1CkmTFOs3ywJpl3sCM3O6vlev4yg1IigaaggJ1"
 
 android {
     namespace = "com.example.cst438project1"
