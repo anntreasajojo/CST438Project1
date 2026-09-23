@@ -55,7 +55,8 @@ fun DinnerScreen(
     repository: FdcRepository = remember { FdcRepository() },
     userId: Int = 0,
     favoriteDao: com.example.cst438project1.database.FavoriteDao? = null,
-    foodDao: com.example.cst438project1.database.FoodDao? = null
+    foodDao: com.example.cst438project1.database.FoodDao? = null,
+    onFavoriteAdded: () -> Unit = {}
 ) {
     var foodName by remember { mutableStateOf("") }
     val dinnerFoods = remember { mutableStateListOf<FoodEntry>() }
@@ -118,7 +119,8 @@ fun DinnerScreen(
             userId = userId,
             favoriteDao = favoriteDao,
             foodDao = foodDao,
-            scope = scope
+            scope = scope,
+            onFavoriteAdded = onFavoriteAdded
         )
     }
 }
@@ -162,7 +164,8 @@ private fun DinnerFoodList(
     userId: Int,
     favoriteDao: com.example.cst438project1.database.FavoriteDao?,
     foodDao: com.example.cst438project1.database.FoodDao?,
-    scope: kotlinx.coroutines.CoroutineScope
+    scope: kotlinx.coroutines.CoroutineScope,
+    onFavoriteAdded: () -> Unit = {}
 ) {
     LazyColumn {
         items(dinnerFoods) { food ->
@@ -179,6 +182,7 @@ private fun DinnerFoodList(
                         onClick = {
                             scope.launch {
                                 addToFavorites(food, userId, favoriteDao, foodDao)
+                                onFavoriteAdded()
                             }
                         },
                         modifier = Modifier.fillMaxWidth()

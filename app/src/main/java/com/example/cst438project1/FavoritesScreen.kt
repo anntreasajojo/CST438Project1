@@ -49,11 +49,12 @@ import java.util.Locale
 fun rememberFavorites(
     userId: Int = 0,
     favoriteDao: FavoriteDao? = null,
-    foodDao: FoodDao? = null
+    foodDao: FoodDao? = null,
+    refreshTrigger: Int = 0
 ): SnapshotStateList<FoodEntry> {
     val favorites = remember { mutableStateListOf<FoodEntry>() }
 
-    LaunchedEffect(userId, favoriteDao, foodDao) {
+    LaunchedEffect(userId, favoriteDao, foodDao, refreshTrigger) {
         if (favoriteDao == null || foodDao == null || userId <= 0) return@LaunchedEffect
 
         val storedFavorites = favoriteDao.getFavoritesByUserId(userId)

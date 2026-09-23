@@ -102,7 +102,8 @@ internal fun SignedInApp(user: User, database: AppDatabase, dao: MealLogDao) {
     var tab by rememberSaveable { mutableStateOf(Tab.TODAY) }
     var openMeal by remember { mutableStateOf<Meal?>(null) }
     var showCategories by remember { mutableStateOf(false) }
-    val favorites = rememberFavorites(user.id, database.favoriteDao(), database.foodDao())
+    var favoritesRefreshTrigger by remember { mutableStateOf(0) }
+    val favorites = rememberFavorites(user.id, database.favoriteDao(), database.foodDao(), favoritesRefreshTrigger)
     val profile = remember {
         mutableStateOf(Profile(user.calorieGoal, user.carbGoal, user.proteinGoal, user.fatGoal))
     }
@@ -143,6 +144,10 @@ internal fun SignedInApp(user: User, database: AppDatabase, dao: MealLogDao) {
                 )
                 openMeal == Meal.BREAKFAST -> BreakfastScreen(
                     onBack = { openMeal = null },
+                    userId = user.id,
+                    favoriteDao = database.favoriteDao(),
+                    foodDao = database.foodDao(),
+                    onFavoriteAdded = { favoritesRefreshTrigger++ },
                     onAddFood = { food ->
                         changeLog {
                             dao.insert(
@@ -160,6 +165,10 @@ internal fun SignedInApp(user: User, database: AppDatabase, dao: MealLogDao) {
                 )
                 openMeal == Meal.LUNCH -> LunchScreen(
                     onBack = { openMeal = null },
+                    userId = user.id,
+                    favoriteDao = database.favoriteDao(),
+                    foodDao = database.foodDao(),
+                    onFavoriteAdded = { favoritesRefreshTrigger++ },
                     onAddFood = { food ->
                         changeLog {
                             dao.insert(
@@ -177,6 +186,10 @@ internal fun SignedInApp(user: User, database: AppDatabase, dao: MealLogDao) {
                 )
                 openMeal == Meal.DINNER -> DinnerScreen(
                     onBack = { openMeal = null },
+                    userId = user.id,
+                    favoriteDao = database.favoriteDao(),
+                    foodDao = database.foodDao(),
+                    onFavoriteAdded = { favoritesRefreshTrigger++ },
                     onAddFood = { food ->
                         changeLog {
                             dao.insert(
