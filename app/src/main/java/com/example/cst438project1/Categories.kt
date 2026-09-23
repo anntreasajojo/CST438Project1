@@ -1,9 +1,7 @@
 package com.example.cst438project1
 
-
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -63,7 +60,6 @@ val foods = listOf(
 val categoryOrder = listOf("Breakfast", "Lunch", "Dinner", "Snacks")
 
 // converts Food from the list into a FoodEntry that FavoritesScreen understands
-// carbs/protein/fat are 0 for now until we get real data from the API
 fun Food.toFoodEntry() = FoodEntry(
     name = this.name,
     calories = this.calories,
@@ -96,7 +92,7 @@ private fun CategoryHeader(category: String, isExpanded: Boolean, onToggle: () -
     HorizontalDivider()
 }
 
-// card row for a single food item with heart button and image placeholder
+// card row for a single food item with heart button
 @Composable
 private fun FoodCard(
     food: Food,
@@ -134,6 +130,25 @@ private fun FoodCard(
             }
         }
     }
+}
+
+// shows nutritional details for the food the user tapped on
+@Composable
+private fun SelectedFoodDetail(food: Food) {
+    Spacer(modifier = Modifier.height(16.dp))
+    Text(text = "Selected food", style = MaterialTheme.typography.titleLarge)
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(text = "Name: ${food.name}")
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(text = "Category: ${food.category}")
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(text = "Calories: ${food.calories}")
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(text = "Carbs: ${food.carbs}")
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(text = "Protein: ${food.protein}")
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(text = "Fat: ${food.fat}")
 }
 
 @Composable
@@ -215,23 +230,10 @@ fun CategoriesScreen(
         // only runs this block if something's actually been tapped
         // show details for whichever food was tapped
         selectedFood?.let { food ->
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = "Selected food", style = MaterialTheme.typography.titleLarge)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Name: ${food.name}")
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Category: ${food.category}")
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Calories: ${food.calories}")
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Carbs: ${food.carbs}")
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Protein: ${food.protein}")
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Fat: ${food.fat}")
-            }
+            SelectedFoodDetail(food)
         }
     }
+}
 
 // preview without running the app
 @Preview(showBackground = true)
@@ -239,4 +241,3 @@ fun CategoriesScreen(
 fun CategoriesScreenPreview() {
     CategoriesScreen()
 }
-
