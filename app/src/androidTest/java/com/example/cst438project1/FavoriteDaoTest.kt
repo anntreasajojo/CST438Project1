@@ -5,7 +5,7 @@ import org.junit.runner.RunWith
 import org.junit.Test
 import org.junit.Before
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider

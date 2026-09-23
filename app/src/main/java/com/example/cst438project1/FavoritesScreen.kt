@@ -45,10 +45,41 @@ import com.example.cst438project1.ui.theme.CST438Project1Theme
 import kotlinx.coroutines.launch
 import java.util.Locale
 
+private const val DEFAULT_GREEK_YOGURT_CALORIES = 130
+private const val DEFAULT_GREEK_YOGURT_CARBS = 9
+private const val DEFAULT_GREEK_YOGURT_PROTEIN = 17
+private const val DEFAULT_GREEK_YOGURT_FAT = 3
+private const val DEFAULT_CHICKEN_BREAST_CALORIES = 284
+private const val DEFAULT_CHICKEN_BREAST_CARBS = 0
+private const val DEFAULT_CHICKEN_BREAST_PROTEIN = 53
+private const val DEFAULT_CHICKEN_BREAST_FAT = 6
+private const val DEFAULT_ALMONDS_CALORIES = 164
+private const val DEFAULT_ALMONDS_CARBS = 6
+private const val DEFAULT_ALMONDS_PROTEIN = 6
+private const val DEFAULT_ALMONDS_FAT = 14
+
 private val defaultFavorites = listOf(
-    FoodEntry("Greek yogurt", 130, 9, 17, 3),
-    FoodEntry("Chicken breast", 284, 0, 53, 6),
-    FoodEntry("Almonds, 1 oz", 164, 6, 6, 14)
+    FoodEntry(
+        "Greek yogurt",
+        DEFAULT_GREEK_YOGURT_CALORIES,
+        DEFAULT_GREEK_YOGURT_CARBS,
+        DEFAULT_GREEK_YOGURT_PROTEIN,
+        DEFAULT_GREEK_YOGURT_FAT
+    ),
+    FoodEntry(
+        "Chicken breast",
+        DEFAULT_CHICKEN_BREAST_CALORIES,
+        DEFAULT_CHICKEN_BREAST_CARBS,
+        DEFAULT_CHICKEN_BREAST_PROTEIN,
+        DEFAULT_CHICKEN_BREAST_FAT
+    ),
+    FoodEntry(
+        "Almonds, 1 oz",
+        DEFAULT_ALMONDS_CALORIES,
+        DEFAULT_ALMONDS_CARBS,
+        DEFAULT_ALMONDS_PROTEIN,
+        DEFAULT_ALMONDS_FAT
+    )
 )
 
 @Composable
@@ -93,6 +124,19 @@ fun FavoritesScreen(
     onAddTo: (Meal, FoodEntry) -> Unit = { _, _ -> }
 ) {
     val scope = rememberCoroutineScope()
+    val removeFavorite: (FoodEntry) -> Unit = { favorite ->
+        favorites.remove(favorite)
+        if (favoriteDao != null && userId > 0 && favorite.favoriteId > 0) {
+            scope.launch {
+                val favoriteRow = favoriteDao.getFavoritesByUserId(userId)
+                    .firstOrNull { it.foodId == favorite.foodId }
+                if (favoriteRow != null) {
+                    favoriteDao.deleteFavorite(favoriteRow)
+                }
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -135,18 +179,7 @@ fun FavoritesScreen(
                     favorite = favorite,
                     saving = saving,
                     onAddTo = { meal -> onAddTo(meal, favorite) },
-                    onRemove = {
-                        favorites.remove(favorite)
-                        if (favoriteDao != null && userId > 0 && favorite.favoriteId > 0) {
-                            scope.launch {
-                                val favoriteRow = favoriteDao.getFavoritesByUserId(userId)
-                                    .firstOrNull { it.foodId == favorite.foodId }
-                                if (favoriteRow != null) {
-                                    favoriteDao.deleteFavorite(favoriteRow)
-                                }
-                            }
-                        }
-                    }
+                    onRemove = { removeFavorite(favorite) }
                 )
             }
         }
