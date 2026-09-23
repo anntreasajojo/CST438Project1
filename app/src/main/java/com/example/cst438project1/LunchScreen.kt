@@ -15,49 +15,47 @@ import androidx.compose.foundation.lazy.items
 // needed to use buttons
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-// need this to create interface functions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 // needed so we can have values that can change AND update the screen
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.cst438project1.fdc.FdcRepository
+import kotlinx.coroutines.launch
 
-// food data class
-// structure for storing one food item
 data class LunchFood(
     val name: String,
     val calories: Int
 )
 
-// adds up and returns the total calories of all foods in the list
-// list contains LunchFood objects
-fun calculateTotalCalories(foods: List<LunchFood>): Int {
-    return foods.sumOf { food -> food.calories }
-}
+fun calculateTotalCalories(foods: List<LunchFood>): Int = foods.sumOf { it.calories }
 
 @Composable
-fun LunchScreen(onBack: () -> Unit = {}) {
+fun LunchScreen(
+    onBack: () -> Unit = {},
+    onAddFood: (FoodEntry) -> Unit = {},
+    repository: FdcRepository = remember { FdcRepository() }
+) {
     // `foodName` stores what the user types
     // `remember` keyword is used to keep the value when screen updates
     var foodName by remember { mutableStateOf("") }
-
-    // temporary lunch data
-    // represent lunch items already entered by the user
-    // --this list should eventually populate from database--
-    val lunchFoods = listOf(
-        LunchFood("Banana", 105),
-        LunchFood("Oatmeal", 150)
-    )
+    val lunchFoods = remember { mutableStateListOf<FoodEntry>() }
+    var loading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
 
     // this adds the calories from every food in the lunch list
-    val totalCalories = calculateTotalCalories(lunchFoods)
+    val totalCalories = lunchFoods.sumOf { it.calories }
 
     // START OF THE MAIN COLUMN
     Column(
@@ -99,10 +97,31 @@ fun LunchScreen(onBack: () -> Unit = {}) {
 
         // submit button
         Button(
-            onClick = { },
-            modifier = Modifier.fillMaxWidth()
+            onClick = {
+                scope.launch {
+                    loading = true
+                    errorMessage = null
+
+                    val result = repository.searchFoods(foodName)
+
+                    result.onSuccess { foods ->
+                        lunchFoods.clear()
+                        lunchFoods.addAll(foods)
+                        if (foods.isEmpty() && foodName.isNotBlank()) {
+                            errorMessage = "No foods matched that search."
+                        }
+                    }.onFailure { error ->
+                        lunchFoods.clear()
+                        errorMessage = error.message ?: "Search failed."
+                    }
+
+                    loading = false
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !loading
         ) {
-            Text("Submit Food")
+            Text("Search Food")
         }
 
         // add space
@@ -119,17 +138,31 @@ fun LunchScreen(onBack: () -> Unit = {}) {
         // add some space
         Spacer(modifier = Modifier.height(8.dp))
 
+        if (loading) {
+            CircularProgressIndicator()
+        } else {
+            errorMessage?.let { message ->
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+
         // our vertically scrollable list
         LazyColumn {
             // goes through every item in lunchFoods
             items(lunchFoods) { food ->
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    onClick = { onAddFood(food) }
                 ) {
                     // for each item in the list, show food name and calories in a card list layout
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(text = food.name)
                         Text(text = "${food.calories} calories")
+                        Text(text = "Carbs ${food.carbs}g • Protein ${food.protein}g • Fat ${food.fat}g")
                     }
                 }
             }

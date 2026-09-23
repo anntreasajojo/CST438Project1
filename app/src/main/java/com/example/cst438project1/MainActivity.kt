@@ -141,9 +141,57 @@ internal fun SignedInApp(user: User, database: AppDatabase, dao: MealLogDao) {
                 showCategories -> CategoriesScreen(
                     onBack = { showCategories = false }, favorites = favorites
                 )
-                openMeal == Meal.BREAKFAST -> BreakfastScreen(onBack = { openMeal = null })
-                openMeal == Meal.LUNCH-> LunchScreen(onBack = { openMeal = null })
-                openMeal == Meal.DINNER -> DinnerScreen(onBack = { openMeal = null })
+                openMeal == Meal.BREAKFAST -> BreakfastScreen(
+                    onBack = { openMeal = null },
+                    onAddFood = { food ->
+                        changeLog {
+                            dao.insert(
+                                MealLogEntry(
+                                    userId = user.id,
+                                    dateEpochDay = LocalDate.now().toEpochDay(),
+                                    meal = Meal.BREAKFAST,
+                                    food = food
+                                )
+                            )
+                            openMeal = null
+                            tab = Tab.TODAY
+                        }
+                    }
+                )
+                openMeal == Meal.LUNCH -> LunchScreen(
+                    onBack = { openMeal = null },
+                    onAddFood = { food ->
+                        changeLog {
+                            dao.insert(
+                                MealLogEntry(
+                                    userId = user.id,
+                                    dateEpochDay = LocalDate.now().toEpochDay(),
+                                    meal = Meal.LUNCH,
+                                    food = food
+                                )
+                            )
+                            openMeal = null
+                            tab = Tab.TODAY
+                        }
+                    }
+                )
+                openMeal == Meal.DINNER -> DinnerScreen(
+                    onBack = { openMeal = null },
+                    onAddFood = { food ->
+                        changeLog {
+                            dao.insert(
+                                MealLogEntry(
+                                    userId = user.id,
+                                    dateEpochDay = LocalDate.now().toEpochDay(),
+                                    meal = Meal.DINNER,
+                                    food = food
+                                )
+                            )
+                            openMeal = null
+                            tab = Tab.TODAY
+                        }
+                    }
+                )
                 tab == Tab.FAVORITES -> FavoritesScreen(
                     favorites = favorites,
                     saving = saving,

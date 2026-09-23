@@ -18,6 +18,11 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        buildConfigField(
+            "String",
+            "FDC_API_KEY",
+            "\"TODO_ADD_FDC_API_KEY\""
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -40,6 +45,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     room {
         schemaDirectory("$projectDir/schemas")
@@ -66,6 +72,9 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.kotlinx.coroutines.android)
 
     // Adding to the pmd configuration drops Gradle's defaults, so list all three
     pmd("net.sourceforge.pmd:pmd-ant:7.27.0")

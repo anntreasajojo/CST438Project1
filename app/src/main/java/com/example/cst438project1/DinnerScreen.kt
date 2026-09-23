@@ -1,4 +1,5 @@
 package com.example.cst438project1
+
 import androidx.compose.foundation.layout.Column
 // needed to create empty space between stuff
 import androidx.compose.foundation.layout.Spacer
@@ -14,57 +15,57 @@ import androidx.compose.foundation.lazy.items
 // needed to use buttons
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-// need this to create interface functions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 // needed so we can have values that can change AND update the screen
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.cst438project1.fdc.FdcRepository
+import kotlinx.coroutines.launch
 
-// food data class
-// structure for storing one food item
 data class DinnerFood(
     val name: String,
     val calories: Int
 )
 
-// adds up and returns the total calories of all foods in the list
-// list contains DinnerFood objects
 fun calculateTotalCalories(foods: List<DinnerFood>): Int {
     var totalCalories = 0
-
     for (food in foods) {
         if (food.calories >= 0) {
             totalCalories += food.calories
         }
     }
-
     return totalCalories
 }
 
 @Composable
-fun DinnerScreen(onBack: () -> Unit = {}) {
+fun DinnerScreen(
+    onBack: () -> Unit = {},
+    onAddFood: (FoodEntry) -> Unit = {},
+    repository: FdcRepository = remember { FdcRepository() }
+) {
     // `foodName` stores what the user types
     // `remember` keyword is used to keep the value when screen updates
     var foodName by remember { mutableStateOf("") }
-
-    // temporary Dinner data
-    // represent Dinner items already entered by the user
-    // --this list should eventually populate from database--
-    val dinnerFoods = listOf(
-        DinnerFood("Banana", 105),
-        DinnerFood("Oatmeal", 150)
-    )
+    val dinnerFoods = remember { mutableStateListOf<FoodEntry>() }
+    var loading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
 
     // this adds the calories from every food in the dinner list
-    val totalCalories = calculateTotalCalories(dinnerFoods)
+    val totalCalories = calculateTotalCalories(
+        dinnerFoods.map { food -> DinnerFood(food.name, food.calories) }
+    )
 
     // START OF THE MAIN COLUMN
     Column(
@@ -106,10 +107,31 @@ fun DinnerScreen(onBack: () -> Unit = {}) {
 
         // submit button
         Button(
-            onClick = { },
-            modifier = Modifier.fillMaxWidth()
+            onClick = {
+                scope.launch {
+                    loading = true
+                    errorMessage = null
+
+                    val result = repository.searchFoods(foodName)
+
+                    result.onSuccess { foods ->
+                        dinnerFoods.clear()
+                        dinnerFoods.addAll(foods)
+                        if (foods.isEmpty() && foodName.isNotBlank()) {
+                            errorMessage = "No foods matched that search."
+                        }
+                    }.onFailure { error ->
+                        dinnerFoods.clear()
+                        errorMessage = error.message ?: "Search failed."
+                    }
+
+                    loading = false
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !loading
         ) {
-            Text("Submit Food")
+            Text("Search Food")
         }
 
         // add space
@@ -126,17 +148,31 @@ fun DinnerScreen(onBack: () -> Unit = {}) {
         // add some space
         Spacer(modifier = Modifier.height(8.dp))
 
+        if (loading) {
+            CircularProgressIndicator()
+        } else {
+            errorMessage?.let { message ->
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+
         // our vertically scrollable list
         LazyColumn {
             // goes through every item in dinnerFoods
             items(dinnerFoods) { food ->
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    onClick = { onAddFood(food) }
                 ) {
                     // for each item in the list, show food name and calories in a card list layout
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(text = food.name)
                         Text(text = "${food.calories} calories")
+                        Text(text = "Carbs ${food.carbs}g • Protein ${food.protein}g • Fat ${food.fat}g")
                     }
                 }
             }
