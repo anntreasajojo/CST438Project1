@@ -28,34 +28,73 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-
-// food data class
-// structure for storing one food item
-data class BreakfastFood(
-    val name: String,
-    val calories: Int
-)
+// needed to show a loading circle while API is searchin
+import androidx.compose.material3.CircularProgressIndicator
+// needed to create a list that UPDATES screen when things are added or removed
+import androidx.compose.runtime.mutableStateListOf
+// needed to connect the screen to the food search API
+import com.example.cst438project1.fdc.FdcRepository
+// needed to run code when the search changes
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
-fun BreakfastScreen(onBack: () -> Unit = {}) {
+fun BreakfastScreen(
+    onBack: () -> Unit = {},
+    onAddFood: (FoodEntry) -> Unit = {},
+    repository: FdcRepository = remember { FdcRepository() }
+
+) {
     // `foodName` stores what the user types
     // `remember` keyword is used to keep the value when screen updates
     var foodName by remember { mutableStateOf("") }
 
-    // temporary breakfast data
-    // represent breakfast items already entered by the user
-    // --this list should eventually populate from database--
-    val breakfastFoods = listOf(
-        BreakfastFood("Banana", 105),
-        BreakfastFood("Oatmeal", 150)
-    )
+    // stores food results returned by the API
+    val breakfastFoods = remember { mutableStateListOf<FoodEntry>() }
 
-    // this adds the calories from every food in the breakfast list
-    var totalCalories = 0
+    // keeping track of what state the screen is in
+    // keeps track of whether the API is searching
+    var loading by remember { mutableStateOf(false) }
 
-    for (food in breakfastFoods){
-        totalCalories = totalCalories + food.calories
+    // an error message if the search fails
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // changes whenever the user presses the search button
+    var searchRequest by remember { mutableStateOf(0) }
+
+    // runs the API search whenever searchRequest changes
+    LaunchedEffect(searchRequest) {
+        // prevents a search when the screen first opens
+        if (searchRequest == 0) return@LaunchedEffect
+
+        // shows that the app is searching
+        loading = true
+
+        // removes an old error message
+        errorMessage = null
+
+        // searches the API using the user's food name
+        val result = repository.searchFoods(foodName)
+
+        // runs when the search is successful
+        result.onSuccess { foods ->
+            breakfastFoods.clear()
+            breakfastFoods.addAll(foods)
+
+            if (foods.isEmpty()) {
+                errorMessage = "No foods were found."
+            }
+        }
+
+        // runs when the search fails
+        result.onFailure { error ->
+            breakfastFoods.clear()
+            errorMessage = error.message ?: "Food search failed."
+        }
+
+        // tells the screen the search is finished
+        loading = false
     }
+
 
     // START OF THE MAIN COLUMN
     Column(
@@ -97,37 +136,72 @@ fun BreakfastScreen(onBack: () -> Unit = {}) {
 
         // submit button
         Button(
-            onClick = { },
+            onClick = {
+                // changes searchRequest and starts the API search
+                searchRequest++
+            },
+            enabled = foodName.isNotBlank() && !loading,
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Submit Food")
-        }
+        ) { Text("Search Food") }
 
         // add space
         Spacer(modifier = Modifier.height(16.dp))
 
+        // displays a loading circle while the API is searching
+        if (loading) {
+            CircularProgressIndicator()
+        }
+
+        // displays an error message when the search fails
+        // saves the current error message in a temporary variable
+        val message = errorMessage
+
+        // checks whether an error message exists
+        if (message != null) {
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+
         Text(
-            text = "Your breakfast",
+            text = "Search results",
             style = MaterialTheme.typography.titleLarge
         )
-
-        // display value for total calories from the breakfastFoods
-        Text(text = "Total calories: $totalCalories")
 
         // add some space
         Spacer(modifier = Modifier.height(8.dp))
 
         // our vertically scrollable list
-        LazyColumn {
-            // goes through every item in breakfastFoods
+        LazyColumn(
+            // add space
+            modifier = Modifier.weight(1f)
+        ) {
+            // displays each food returned by the API
             items(breakfastFoods) { food ->
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
                 ) {
-                    // for each item in the list, show food name and calories in a card list layout
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(text = food.name)
                         Text(text = "${food.calories} calories")
+                        Text(text = "Carbs: ${food.carbs}g")
+                        Text(text = "Protein: ${food.protein}g")
+                        Text(text = "Fat: ${food.fat}g")
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // sends the selected food to MainActivity
+                        Button(
+                            onClick = {
+                                onAddFood(food)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Add Food")
+                        }
                     }
                 }
             }
@@ -139,5 +213,8 @@ fun BreakfastScreen(onBack: () -> Unit = {}) {
 @Preview(showBackground = true)
 @Composable
 fun BreakfastScreenPreview() {
-    BreakfastScreen()
+    BreakfastScreen(
+        onBack = {},
+        onAddFood = {}
+    )
 }

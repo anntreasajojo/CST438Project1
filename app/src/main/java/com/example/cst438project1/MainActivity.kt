@@ -144,10 +144,6 @@ internal fun SignedInApp(user: User, database: AppDatabase, dao: MealLogDao) {
                 )
                 openMeal == Meal.BREAKFAST -> BreakfastScreen(
                     onBack = { openMeal = null },
-                    userId = user.id,
-                    favoriteDao = database.favoriteDao(),
-                    foodDao = database.foodDao(),
-                    onFavoriteAdded = { favoritesRefreshTrigger++ },
                     onAddFood = { food ->
                         changeLog {
                             dao.insert(
