@@ -45,34 +45,13 @@ import com.example.cst438project1.ui.theme.CST438Project1Theme
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-private val DEFAULT_YOGURT_CALORIES = 130
-private val DEFAULT_YOGURT_CARBS = 9
-private val DEFAULT_YOGURT_PROTEIN = 17
-private val DEFAULT_YOGURT_FAT = 3
-
-private val DEFAULT_CHICKEN_CALORIES = 284
-private val DEFAULT_CHICKEN_CARBS = 0
-private val DEFAULT_CHICKEN_PROTEIN = 53
-private val DEFAULT_CHICKEN_FAT = 6
-
-private val DEFAULT_ALMONDS_CALORIES = 164
-private val DEFAULT_ALMONDS_CARBS = 6
-private val DEFAULT_ALMONDS_PROTEIN = 6
-private val DEFAULT_ALMONDS_FAT = 14
-
-private val defaultFavorites = listOf(
-    FoodEntry("Greek yogurt", DEFAULT_YOGURT_CALORIES, DEFAULT_YOGURT_CARBS, DEFAULT_YOGURT_PROTEIN, DEFAULT_YOGURT_FAT),
-    FoodEntry("Chicken breast", DEFAULT_CHICKEN_CALORIES, DEFAULT_CHICKEN_CARBS, DEFAULT_CHICKEN_PROTEIN, DEFAULT_CHICKEN_FAT),
-    FoodEntry("Almonds, 1 oz", DEFAULT_ALMONDS_CALORIES, DEFAULT_ALMONDS_CARBS, DEFAULT_ALMONDS_PROTEIN, DEFAULT_ALMONDS_FAT)
-)
-
 @Composable
 fun rememberFavorites(
     userId: Int = 0,
     favoriteDao: FavoriteDao? = null,
     foodDao: FoodDao? = null
 ): SnapshotStateList<FoodEntry> {
-    val favorites = remember { mutableStateListOf<FoodEntry>().apply { addAll(defaultFavorites) } }
+    val favorites = remember { mutableStateListOf<FoodEntry>() }
 
     LaunchedEffect(userId, favoriteDao, foodDao) {
         if (favoriteDao == null || foodDao == null || userId <= 0) return@LaunchedEffect
@@ -93,7 +72,7 @@ fun rememberFavorites(
         }
 
         favorites.clear()
-        favorites.addAll(loadedFavorites.ifEmpty { defaultFavorites })
+        favorites.addAll(loadedFavorites)
     }
 
     return favorites

@@ -38,7 +38,10 @@ data class BreakfastFood(
 fun BreakfastScreen(
     onBack: () -> Unit = {},
     onAddFood: (FoodEntry) -> Unit = {},
-    repository: FdcRepository = remember { FdcRepository() }
+    repository: FdcRepository = remember { FdcRepository() },
+    userId: Int = 0,
+    favoriteDao: com.example.cst438project1.database.FavoriteDao? = null,
+    foodDao: com.example.cst438project1.database.FoodDao? = null
 ) {
     var foodName by remember { mutableStateOf("") }
     val breakfastFoods = remember { mutableStateListOf<FoodEntry>() }
@@ -46,32 +49,13 @@ fun BreakfastScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    var totalCalories = 0
-    for (food in breakfastFoods) {
-        totalCalories += food.calories
-    }
+    val totalCalories = breakfastFoods.sumOf { it.calories }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Button(onClick = onBack) {
-            Text("Back")
-        }
-
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Button(onClick = onBack) { Text("Back") }
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Add your breakfast!",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Text(
-            text = "Enter a food and search FDC when you press the button.",
-            style = MaterialTheme.typography.bodyMedium
-        )
-
+        BreakfastHeader()
         Spacer(modifier = Modifier.height(16.dp))
 
         BreakfastSearchInput(
@@ -82,9 +66,7 @@ fun BreakfastScreen(
                 scope.launch {
                     loading = true
                     errorMessage = null
-
                     val result = repository.searchFoods(foodName)
-
                     result.onSuccess { foods ->
                         breakfastFoods.clear()
                         breakfastFoods.addAll(foods)
@@ -95,37 +77,41 @@ fun BreakfastScreen(
                         breakfastFoods.clear()
                         errorMessage = error.message ?: "Search failed."
                     }
-
                     loading = false
                 }
             }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Your breakfast",
-            style = MaterialTheme.typography.titleLarge
-        )
-
+        Text("Your breakfast", style = MaterialTheme.typography.titleLarge)
         Text(text = "Total calories: $totalCalories")
-
         Spacer(modifier = Modifier.height(8.dp))
 
         if (loading) {
             CircularProgressIndicator()
         } else {
             errorMessage?.let { message ->
-                Text(
-                    text = message,
-                    color = MaterialTheme.colorScheme.error
-                )
+                Text(text = message, color = MaterialTheme.colorScheme.error)
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
 
-        BreakfastFoodList(breakfastFoods, onAddFood)
+        BreakfastFoodList(
+            breakfastFoods = breakfastFoods,
+            onAddFood = onAddFood,
+            userId = userId,
+            favoriteDao = favoriteDao,
+            foodDao = foodDao,
+            scope = scope
+        )
     }
+}
+
+@Composable
+private fun BreakfastHeader() {
+    Text("Add your breakfast!", style = MaterialTheme.typography.headlineMedium)
+    Text("Enter a food and search FDC when you press the button.",
+        style = MaterialTheme.typography.bodyMedium)
 }
 
 @Composable
@@ -135,7 +121,6 @@ private fun BreakfastSearchInput(
     loading: Boolean,
     onSearch: () -> Unit
 ) {
-    // Text input field where user enters the food name to search
     OutlinedTextField(
         value = foodName,
         onValueChange = onFoodNameChange,
@@ -146,7 +131,6 @@ private fun BreakfastSearchInput(
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    // Search button - disabled while loading results from API
     Button(
         onClick = onSearch,
         modifier = Modifier.fillMaxWidth(),
@@ -159,24 +143,67 @@ private fun BreakfastSearchInput(
 @Composable
 private fun BreakfastFoodList(
     breakfastFoods: List<FoodEntry>,
-    onAddFood: (FoodEntry) -> Unit
+    onAddFood: (FoodEntry) -> Unit,
+    userId: Int,
+    favoriteDao: com.example.cst438project1.database.FavoriteDao?,
+    foodDao: com.example.cst438project1.database.FoodDao?,
+    scope: kotlinx.coroutines.CoroutineScope
 ) {
-    // Scrollable list showing search results; user clicks to add to breakfast
     LazyColumn {
         items(breakfastFoods) { food ->
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                 onClick = { onAddFood(food) }
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = food.name)
                     Text(text = "${food.calories} calories")
                     Text(text = "Carbs ${food.carbs}g • Protein ${food.protein}g • Fat ${food.fat}g")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                addToFavorites(food, userId, favoriteDao, foodDao)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Add to Favorites")
+                    }
                 }
             }
         }
+    }
+}
+
+private suspend fun addToFavorites(
+    food: FoodEntry,
+    userId: Int,
+    favoriteDao: com.example.cst438project1.database.FavoriteDao?,
+    foodDao: com.example.cst438project1.database.FoodDao?
+) {
+    if (favoriteDao == null || foodDao == null || userId <= 0) return
+
+    try {
+        var foodId = food.foodId
+        if (foodId == 0) {
+            val dbFood = com.example.cst438project1.database.Food(
+                name = food.name,
+                calories = food.calories,
+                fat = food.fat.toDouble(),
+                protein = food.protein.toDouble(),
+                carbs = food.carbs.toDouble()
+            )
+            foodId = foodDao.insertFood(dbFood).toInt()
+        }
+
+        val favorite = com.example.cst438project1.database.Favorite(
+            userId = userId,
+            foodId = foodId
+        )
+        favoriteDao.insertFavorite(favorite)
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 }
 

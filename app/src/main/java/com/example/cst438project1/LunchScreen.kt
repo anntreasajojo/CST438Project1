@@ -44,7 +44,10 @@ fun calculateTotalCalories(foods: List<LunchFood>): Int = foods.sumOf { it.calor
 fun LunchScreen(
     onBack: () -> Unit = {},
     onAddFood: (FoodEntry) -> Unit = {},
-    repository: FdcRepository = remember { FdcRepository() }
+    repository: FdcRepository = remember { FdcRepository() },
+    userId: Int = 0,
+    favoriteDao: com.example.cst438project1.database.FavoriteDao? = null,
+    foodDao: com.example.cst438project1.database.FoodDao? = null
 ) {
     var foodName by remember { mutableStateOf("") }
     val lunchFoods = remember { mutableStateListOf<FoodEntry>() }
@@ -54,25 +57,11 @@ fun LunchScreen(
 
     val totalCalories = lunchFoods.sumOf { it.calories }
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)) {
-
-        Button(onClick = onBack) {
-            Text("Back")
-        }
-
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Button(onClick = onBack) { Text("Back") }
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Add your lunch!",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Text(
-            text = "Enter a food and keep track of your calories.",
-            style = MaterialTheme.typography.bodyMedium
-        )
-
+        LunchHeader()
         Spacer(modifier = Modifier.height(16.dp))
 
         LunchSearchInput(
@@ -83,9 +72,7 @@ fun LunchScreen(
                 scope.launch {
                     loading = true
                     errorMessage = null
-
                     val result = repository.searchFoods(foodName)
-
                     result.onSuccess { foods ->
                         lunchFoods.clear()
                         lunchFoods.addAll(foods)
@@ -96,37 +83,41 @@ fun LunchScreen(
                         lunchFoods.clear()
                         errorMessage = error.message ?: "Search failed."
                     }
-
                     loading = false
                 }
             }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Your lunch",
-            style = MaterialTheme.typography.titleLarge
-        )
-
+        Text("Your lunch", style = MaterialTheme.typography.titleLarge)
         Text(text = "Total calories: $totalCalories")
-
         Spacer(modifier = Modifier.height(8.dp))
 
         if (loading) {
             CircularProgressIndicator()
         } else {
             errorMessage?.let { message ->
-                Text(
-                    text = message,
-                    color = MaterialTheme.colorScheme.error
-                )
+                Text(text = message, color = MaterialTheme.colorScheme.error)
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
 
-        LunchFoodList(lunchFoods, onAddFood)
+        LunchFoodList(
+            lunchFoods = lunchFoods,
+            onAddFood = onAddFood,
+            userId = userId,
+            favoriteDao = favoriteDao,
+            foodDao = foodDao,
+            scope = scope
+        )
     }
+}
+
+@Composable
+private fun LunchHeader() {
+    Text("Add your lunch!", style = MaterialTheme.typography.headlineMedium)
+    Text("Enter a food and keep track of your calories.",
+        style = MaterialTheme.typography.bodyMedium)
 }
 
 @Composable
@@ -157,7 +148,11 @@ private fun LunchSearchInput(
 @Composable
 private fun LunchFoodList(
     lunchFoods: List<FoodEntry>,
-    onAddFood: (FoodEntry) -> Unit
+    onAddFood: (FoodEntry) -> Unit,
+    userId: Int,
+    favoriteDao: com.example.cst438project1.database.FavoriteDao?,
+    foodDao: com.example.cst438project1.database.FoodDao?,
+    scope: kotlinx.coroutines.CoroutineScope
 ) {
     LazyColumn {
         items(lunchFoods) { food ->
@@ -169,9 +164,51 @@ private fun LunchFoodList(
                     Text(text = food.name)
                     Text(text = "${food.calories} calories")
                     Text(text = "Carbs ${food.carbs}g • Protein ${food.protein}g • Fat ${food.fat}g")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                addToFavorites(food, userId, favoriteDao, foodDao)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Add to Favorites")
+                    }
                 }
             }
         }
+    }
+}
+
+private suspend fun addToFavorites(
+    food: FoodEntry,
+    userId: Int,
+    favoriteDao: com.example.cst438project1.database.FavoriteDao?,
+    foodDao: com.example.cst438project1.database.FoodDao?
+) {
+    if (favoriteDao == null || foodDao == null || userId <= 0) return
+
+    try {
+        var foodId = food.foodId
+        if (foodId == 0) {
+            val dbFood = com.example.cst438project1.database.Food(
+                name = food.name,
+                calories = food.calories,
+                fat = food.fat.toDouble(),
+                protein = food.protein.toDouble(),
+                carbs = food.carbs.toDouble()
+            )
+            foodId = foodDao.insertFood(dbFood).toInt()
+        }
+
+        val favorite = com.example.cst438project1.database.Favorite(
+            userId = userId,
+            foodId = foodId
+        )
+        favoriteDao.insertFavorite(favorite)
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 }
 
