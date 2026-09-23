@@ -57,7 +57,7 @@ fun DinnerScreen(
     var loading by remember { mutableStateOf(false) }
 
     // an error message if the search fails
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var errorMessage by remember { mutableStateOf("") }
 
     // changes whenever the user presses the search button
     var searchRequest by remember { mutableStateOf(0) }
@@ -71,7 +71,7 @@ fun DinnerScreen(
         loading = true
 
         // removes an old error message
-        errorMessage = null
+        errorMessage = ""
 
         // searches the API using the user's food name
         val result = repository.searchFoods(foodName)
@@ -89,7 +89,15 @@ fun DinnerScreen(
         // runs when the search fails
         result.onFailure { error ->
             dinnerFoods.clear()
-            errorMessage = error.message ?: "Food search failed."
+            // gets the error message from the API
+            val errorText = error.message
+
+            // uses the API message if one exists
+            if (errorText != null) {
+                errorMessage = errorText
+            } else {
+                errorMessage = "Food search failed."
+            }
         }
 
         // tells the screen the search is finished
@@ -141,7 +149,8 @@ fun DinnerScreen(
                 // changes searchRequest and starts the API search
                 searchRequest++
             },
-            enabled = foodName.isNotBlank() && !loading,
+            // only enables the button when a food name is entered
+            enabled = isValidFoodName(foodName) && !loading,
             modifier = Modifier.fillMaxWidth()
         ) { Text("Search Food") }
 
@@ -153,14 +162,10 @@ fun DinnerScreen(
             CircularProgressIndicator()
         }
 
-        // displays an error message when the search fails
-        // saves the current error message in a temporary variable
-        val message = errorMessage
-
-        // checks whether an error message exists
-        if (message != null) {
+        // only displays the message when an error exists
+        if (errorMessage != "") {
             Text(
-                text = message,
+                text = errorMessage,
                 color = MaterialTheme.colorScheme.error
             )
         }
