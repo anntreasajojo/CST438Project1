@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,7 +10,18 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
-val fdcApiKey = providers.gradleProperty("FDC_API_KEY").orNull ?: "jm1CkmTFOs3ywJpl3sCM3O6vlev4yg1IigaaggJ1"
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
+val fdcApiKey = providers.gradleProperty("FDC_API_KEY").orNull
+    ?: providers.environmentVariable("FDC_API_KEY").orNull
+    ?: localProperties.getProperty("FDC_API_KEY")
+    ?: localProperties.getProperty("fdc.api.key")
+    ?: ""
 
 android {
     namespace = "com.example.cst438project1"

@@ -19,8 +19,12 @@ class FdcRepository(
         if (normalized.isBlank()) {
             return Result.success(emptyList())
         }
-        if (apiKey == TODO_API_KEY_VALUE) {
-            return Result.failure(IllegalStateException("Add your FDC API key in BuildConfig.FDC_API_KEY."))
+        if (apiKey.isBlank()) {
+            return Result.failure(
+                IllegalStateException(
+                    "Set FDC_API_KEY in gradle.properties, local.properties, or as an environment variable."
+                )
+            )
         }
         return runCatching {
             // Convert the API response into the FoodEntry shape already used by the app.
@@ -31,7 +35,4 @@ class FdcRepository(
         }
     }
 
-    companion object {
-        const val TODO_API_KEY_VALUE = "jm1CkmTFOs3ywJpl3sCM3O6vlev4yg1IigaaggJ1"
-    }
 }
