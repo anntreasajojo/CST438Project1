@@ -8,12 +8,11 @@ import androidx.room.Update
 
 @Dao
 interface FoodDao {
+    @Insert
+    suspend fun insertFood(food: Food): Long
 
     @Insert
-    suspend fun insertFood(food: Food)
-
-    @Insert
-    suspend fun insertFoods(foods: List<Food>)
+    suspend fun insertFoods(foods: List<Food>): List<Long>
 
     @Query("SELECT * FROM foods")
     suspend fun getAllFoods(): List<Food>
@@ -32,5 +31,4 @@ interface FoodDao {
 
     @Delete
     suspend fun deleteFood(food: Food)
-
 }

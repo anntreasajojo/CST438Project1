@@ -88,7 +88,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 user?.let { signedIn ->
-                    key(signedIn.id) { SignedInApp(signedIn, database.mealLogDao()) }
+                    key(signedIn.id) { SignedInApp(signedIn, database, database.mealLogDao()) }
                 }
             }
         }
@@ -98,11 +98,12 @@ class MainActivity : ComponentActivity() {
 // This is the existing state-based navigation, with one shared DB write path.
 @Suppress("LongMethod", "CyclomaticComplexMethod")
 @Composable
-internal fun SignedInApp(user: User, dao: MealLogDao) {
+internal fun SignedInApp(user: User, database: AppDatabase, dao: MealLogDao) {
     var tab by rememberSaveable { mutableStateOf(Tab.TODAY) }
     var openMeal by remember { mutableStateOf<Meal?>(null) }
     var showCategories by remember { mutableStateOf(false) }
-    val favorites = rememberFavorites()
+    var favoritesRefreshTrigger by remember { mutableStateOf(0) }
+    val favorites = rememberFavorites(user.id, database.favoriteDao(), database.foodDao(), favoritesRefreshTrigger)
     val profile = remember {
         mutableStateOf(Profile(user.calorieGoal, user.carbGoal, user.proteinGoal, user.fatGoal))
     }
@@ -141,11 +142,74 @@ internal fun SignedInApp(user: User, dao: MealLogDao) {
                 showCategories -> CategoriesScreen(
                     onBack = { showCategories = false }, favorites = favorites
                 )
-                openMeal == Meal.BREAKFAST -> BreakfastScreen(onBack = { openMeal = null })
-                openMeal == Meal.LUNCH-> LunchScreen(onBack = { openMeal = null })
-                openMeal == Meal.DINNER -> DinnerScreen(onBack = { openMeal = null })
+                openMeal == Meal.BREAKFAST -> BreakfastScreen(
+                    onBack = { openMeal = null },
+                    userId = user.id,
+                    favoriteDao = database.favoriteDao(),
+                    foodDao = database.foodDao(),
+                    onFavoriteAdded = { favoritesRefreshTrigger++ },
+                    onAddFood = { food ->
+                        changeLog {
+                            dao.insert(
+                                MealLogEntry(
+                                    userId = user.id,
+                                    dateEpochDay = LocalDate.now().toEpochDay(),
+                                    meal = Meal.BREAKFAST,
+                                    food = food
+                                )
+                            )
+                            openMeal = null
+                            tab = Tab.TODAY
+                        }
+                    }
+                )
+                openMeal == Meal.LUNCH -> LunchScreen(
+                    onBack = { openMeal = null },
+                    userId = user.id,
+                    favoriteDao = database.favoriteDao(),
+                    foodDao = database.foodDao(),
+                    onFavoriteAdded = { favoritesRefreshTrigger++ },
+                    onAddFood = { food ->
+                        changeLog {
+                            dao.insert(
+                                MealLogEntry(
+                                    userId = user.id,
+                                    dateEpochDay = LocalDate.now().toEpochDay(),
+                                    meal = Meal.LUNCH,
+                                    food = food
+                                )
+                            )
+                            openMeal = null
+                            tab = Tab.TODAY
+                        }
+                    }
+                )
+                openMeal == Meal.DINNER -> DinnerScreen(
+                    onBack = { openMeal = null },
+                    userId = user.id,
+                    favoriteDao = database.favoriteDao(),
+                    foodDao = database.foodDao(),
+                    onFavoriteAdded = { favoritesRefreshTrigger++ },
+                    onAddFood = { food ->
+                        changeLog {
+                            dao.insert(
+                                MealLogEntry(
+                                    userId = user.id,
+                                    dateEpochDay = LocalDate.now().toEpochDay(),
+                                    meal = Meal.DINNER,
+                                    food = food
+                                )
+                            )
+                            openMeal = null
+                            tab = Tab.TODAY
+                        }
+                    }
+                )
                 tab == Tab.FAVORITES -> FavoritesScreen(
-                    favorites = favorites, saving = saving,
+                    favorites = favorites,
+                    saving = saving,
+                    userId = user.id,
+                    favoriteDao = database.favoriteDao(),
                     onAddTo = { meal, food ->
                         changeLog {
                             dao.insert(MealLogEntry(userId = user.id,

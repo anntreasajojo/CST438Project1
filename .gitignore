@@ -16,6 +16,7 @@ local.properties
 .omc/
 .idea
 .idea/misc.xml
+.idea/deploymentTargetSelector.xml
 
 !.idea/vcs.xml
 !.idea/runConfigurations.xml

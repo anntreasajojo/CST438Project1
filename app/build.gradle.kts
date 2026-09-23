@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,6 +9,19 @@ plugins {
     pmd
     id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
+val fdcApiKey = providers.gradleProperty("FDC_API_KEY").orNull
+    ?: providers.environmentVariable("FDC_API_KEY").orNull
+    ?: localProperties.getProperty("FDC_API_KEY")
+    ?: localProperties.getProperty("fdc.api.key")
+    ?: ""
 
 android {
     namespace = "com.example.cst438project1"
@@ -18,6 +33,11 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        buildConfigField(
+            "String",
+            "FDC_API_KEY",
+            "\"$fdcApiKey\""
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -40,6 +60,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     room {
         schemaDirectory("$projectDir/schemas")
@@ -66,6 +87,9 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.kotlinx.coroutines.android)
 
     // Adding to the pmd configuration drops Gradle's defaults, so list all three
     pmd("net.sourceforge.pmd:pmd-ant:7.27.0")
