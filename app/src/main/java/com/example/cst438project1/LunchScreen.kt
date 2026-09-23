@@ -193,27 +193,23 @@ private suspend fun addToFavorites(
 ) {
     if (favoriteDao == null || foodDao == null || userId <= 0) return
 
-    try {
-        var foodId = food.foodId
-        if (foodId == 0) {
-            val dbFood = com.example.cst438project1.database.Food(
-                name = food.name,
-                calories = food.calories,
-                fat = food.fat.toDouble(),
-                protein = food.protein.toDouble(),
-                carbs = food.carbs.toDouble()
-            )
-            foodId = foodDao.insertFood(dbFood).toInt()
-        }
-
-        val favorite = com.example.cst438project1.database.Favorite(
-            userId = userId,
-            foodId = foodId
+    var foodId = food.foodId
+    if (foodId == 0) {
+        val dbFood = com.example.cst438project1.database.Food(
+            name = food.name,
+            calories = food.calories,
+            fat = food.fat.toDouble(),
+            protein = food.protein.toDouble(),
+            carbs = food.carbs.toDouble()
         )
-        favoriteDao.insertFavorite(favorite)
-    } catch (e: IllegalStateException) {
-        // Database error - silently fail
+        foodId = foodDao.insertFood(dbFood).toInt()
     }
+
+    val favorite = com.example.cst438project1.database.Favorite(
+        userId = userId,
+        foodId = foodId
+    )
+    favoriteDao.insertFavorite(favorite)
 }
 
 // preview without running the app
