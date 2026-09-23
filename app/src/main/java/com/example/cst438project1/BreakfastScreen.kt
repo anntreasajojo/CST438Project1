@@ -37,6 +37,7 @@ import com.example.cst438project1.fdc.FdcRepository
 // needed to run code when the search changes
 import androidx.compose.runtime.LaunchedEffect
 
+@Suppress("LongMethod")
 @Composable
 fun BreakfastScreen(
     onBack: () -> Unit = {},
