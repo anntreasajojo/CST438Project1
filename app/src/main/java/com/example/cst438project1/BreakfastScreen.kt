@@ -40,32 +40,26 @@ fun BreakfastScreen(
     onAddFood: (FoodEntry) -> Unit = {},
     repository: FdcRepository = remember { FdcRepository() }
 ) {
-    // `foodName` stores what the user types
-    // `remember` keyword is used to keep the value when screen updates
     var foodName by remember { mutableStateOf("") }
     val breakfastFoods = remember { mutableStateListOf<FoodEntry>() }
     var loading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    // this adds the calories from every food in the breakfast list
     var totalCalories = 0
     for (food in breakfastFoods) {
         totalCalories += food.calories
     }
 
-    // START OF THE MAIN COLUMN
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // a button to go back to previous page
         Button(onClick = onBack) {
             Text("Back")
         }
 
-        //add some space after back button
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
@@ -78,26 +72,13 @@ fun BreakfastScreen(
             style = MaterialTheme.typography.bodyMedium
         )
 
-        //add some space after description
         Spacer(modifier = Modifier.height(16.dp))
 
-        // food search bar- text bar where user can type
-        OutlinedTextField(
-            value = foodName,
-            // runs everytime user types or deletes character
-            // it = new text in the text field
-            onValueChange = { foodName = it },
-            label = { Text("Food name") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        // add some space
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // search button
-        Button(
-            onClick = {
+        BreakfastSearchInput(
+            foodName = foodName,
+            onFoodNameChange = { foodName = it },
+            loading = loading,
+            onSearch = {
                 scope.launch {
                     loading = true
                     errorMessage = null
@@ -117,14 +98,9 @@ fun BreakfastScreen(
 
                     loading = false
                 }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loading
-        ) {
-            Text("Search Food")
-        }
+            }
+        )
 
-        // add space
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
@@ -132,10 +108,8 @@ fun BreakfastScreen(
             style = MaterialTheme.typography.titleLarge
         )
 
-        // display value for total calories from the breakfastFoods
         Text(text = "Total calories: $totalCalories")
 
-        // add some space
         Spacer(modifier = Modifier.height(8.dp))
 
         if (loading) {
@@ -150,22 +124,56 @@ fun BreakfastScreen(
             }
         }
 
-        // our vertically scrollable list
-        LazyColumn {
-            // goes through every item in breakfastFoods
-            items(breakfastFoods) { food ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    onClick = { onAddFood(food) }
-                ) {
-                    // for each item in the list, show food name and calories in a card list layout
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = food.name)
-                        Text(text = "${food.calories} calories")
-                        Text(text = "Carbs ${food.carbs}g • Protein ${food.protein}g • Fat ${food.fat}g")
-                    }
+        BreakfastFoodList(breakfastFoods, onAddFood)
+    }
+}
+
+@Composable
+private fun BreakfastSearchInput(
+    foodName: String,
+    onFoodNameChange: (String) -> Unit,
+    loading: Boolean,
+    onSearch: () -> Unit
+) {
+    // Text input field where user enters the food name to search
+    OutlinedTextField(
+        value = foodName,
+        onValueChange = onFoodNameChange,
+        label = { Text("Food name") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    // Search button - disabled while loading results from API
+    Button(
+        onClick = onSearch,
+        modifier = Modifier.fillMaxWidth(),
+        enabled = !loading
+    ) {
+        Text("Search Food")
+    }
+}
+
+@Composable
+private fun BreakfastFoodList(
+    breakfastFoods: List<FoodEntry>,
+    onAddFood: (FoodEntry) -> Unit
+) {
+    // Scrollable list showing search results; user clicks to add to breakfast
+    LazyColumn {
+        items(breakfastFoods) { food ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                onClick = { onAddFood(food) }
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = food.name)
+                    Text(text = "${food.calories} calories")
+                    Text(text = "Carbs ${food.carbs}g • Protein ${food.protein}g • Fat ${food.fat}g")
                 }
             }
         }

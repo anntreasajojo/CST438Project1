@@ -15,20 +15,19 @@ class FdcRepository(
     private val apiKey: String = BuildConfig.FDC_API_KEY
 ) {
     suspend fun searchFoods(query: String): Result<List<FoodEntry>> {
-        val normalized = query.trim()
-        if (normalized.isBlank()) {
-            return Result.success(emptyList())
-        }
-        if (apiKey.isBlank()) {
-            return Result.failure(
-                IllegalStateException(
-                    "Set FDC_API_KEY in gradle.properties, local.properties, or as an environment variable."
+        if (query.trim().isBlank() || apiKey.isBlank()) {
+            return if (apiKey.isBlank()) {
+                Result.failure(
+                    IllegalStateException(
+                        "Set FDC_API_KEY in gradle.properties, local.properties, or as an environment variable."
+                    )
                 )
-            )
+            } else {
+                Result.success(emptyList())
+            }
         }
         return runCatching {
-            // Convert the API response into the FoodEntry shape already used by the app.
-            api.searchFoods(query = normalized, apiKey = apiKey)
+            api.searchFoods(query = query.trim(), apiKey = apiKey)
                 .foods
                 .map { it.toFoodEntry() }
                 .filter { it.name.isNotBlank() }
