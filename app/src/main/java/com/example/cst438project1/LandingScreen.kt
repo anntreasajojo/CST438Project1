@@ -62,7 +62,9 @@ data class FoodEntry(
     val calories: Int,
     val carbs: Int,
     val protein: Int,
-    val fat: Int
+    val fat: Int,
+    val foodId: Int = 0,
+    val favoriteId: Int = 0
 )
 
 data class Macros(val calories: Int, val carbs: Int, val protein: Int, val fat: Int)

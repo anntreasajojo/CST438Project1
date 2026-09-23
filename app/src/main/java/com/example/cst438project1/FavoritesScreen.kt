@@ -25,10 +25,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -36,25 +38,61 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.cst438project1.database.Favorite
+import com.example.cst438project1.database.FavoriteDao
+import com.example.cst438project1.database.FoodDao
 import com.example.cst438project1.ui.theme.CST438Project1Theme
+import kotlinx.coroutines.launch
 import java.util.Locale
 
-// Favorites are just foods you log often, so they reuse FoodEntry.
+private val defaultFavorites = listOf(
+    FoodEntry("Greek yogurt", 130, 9, 17, 3),
+    FoodEntry("Chicken breast", 284, 0, 53, 6),
+    FoodEntry("Almonds, 1 oz", 164, 6, 6, 14)
+)
+
 @Composable
-fun rememberFavorites(): SnapshotStateList<FoodEntry> = remember {
-    mutableStateListOf(
-        FoodEntry("Greek yogurt", 130, 9, 17, 3),
-        FoodEntry("Chicken breast", 284, 0, 53, 6),
-        FoodEntry("Almonds, 1 oz", 164, 6, 6, 14)
-    )
+fun rememberFavorites(
+    userId: Int = 0,
+    favoriteDao: FavoriteDao? = null,
+    foodDao: FoodDao? = null
+): SnapshotStateList<FoodEntry> {
+    val favorites = remember { mutableStateListOf<FoodEntry>().apply { addAll(defaultFavorites) } }
+
+    LaunchedEffect(userId, favoriteDao, foodDao) {
+        if (favoriteDao == null || foodDao == null || userId <= 0) return@LaunchedEffect
+
+        val storedFavorites = favoriteDao.getFavoritesByUserId(userId)
+        val loadedFavorites = storedFavorites.mapNotNull { favorite ->
+            foodDao.getFoodById(favorite.foodId)?.let { food ->
+                FoodEntry(
+                    name = food.name,
+                    calories = food.calories,
+                    carbs = food.carbs.toInt(),
+                    protein = food.protein.toInt(),
+                    fat = food.fat.toInt(),
+                    foodId = food.id,
+                    favoriteId = favorite.favoriteId
+                )
+            }
+        }
+
+        favorites.clear()
+        favorites.addAll(loadedFavorites.ifEmpty { defaultFavorites })
+    }
+
+    return favorites
 }
 
 @Composable
 fun FavoritesScreen(
     favorites: SnapshotStateList<FoodEntry>,
     saving: Boolean = false,
+    userId: Int = 0,
+    favoriteDao: FavoriteDao? = null,
     onAddTo: (Meal, FoodEntry) -> Unit = { _, _ -> }
 ) {
+    val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -97,7 +135,18 @@ fun FavoritesScreen(
                     favorite = favorite,
                     saving = saving,
                     onAddTo = { meal -> onAddTo(meal, favorite) },
-                    onRemove = { favorites.remove(favorite) }
+                    onRemove = {
+                        favorites.remove(favorite)
+                        if (favoriteDao != null && userId > 0 && favorite.favoriteId > 0) {
+                            scope.launch {
+                                val favoriteRow = favoriteDao.getFavoritesByUserId(userId)
+                                    .firstOrNull { it.foodId == favorite.foodId }
+                                if (favoriteRow != null) {
+                                    favoriteDao.deleteFavorite(favoriteRow)
+                                }
+                            }
+                        }
+                    }
                 )
             }
         }

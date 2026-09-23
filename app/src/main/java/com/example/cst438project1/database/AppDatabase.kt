@@ -48,8 +48,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app_database"
                 )
-                    // Version 2 upgrades without losing accounts or food data.
-                    // Unsupported older schemas are preserved, never wiped.
+                    // Room stores this in app-private SQLite storage, so it survives a
+                    // normal app close and restart without extra save code.
                     .build()
                 INSTANCE = instance
                 instance
