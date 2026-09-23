@@ -1,9 +1,7 @@
 package com.example.cst438project1
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -41,32 +38,34 @@ import androidx.compose.ui.unit.dp
 data class Food(
     val name: String,
     val calories: Int,
-    val category: String
+    val category: String,
+    val carbs: Int = 0,
+    val protein: Int = 0,
+    val fat: Int = 0
 )
 
 // random data, change for API stuff later.
 val foods = listOf(
-    Food("Eggs", 70, "Breakfast"),
-    Food("Oatmeal", 150, "Breakfast"),
-    Food("Chicken Sandwich", 450, "Lunch"),
-    Food("Caesar Salad", 500, "Lunch"),
-    Food("Spaghetti", 300, "Dinner"),
-    Food("Salmon", 200, "Dinner"),
-    Food("Apple", 95, "Snacks"),
-    Food("Protein Shake", 150, "Snacks")
+    Food("Eggs", 70, "Breakfast", carbs = 0, protein = 6, fat = 5),
+    Food("Oatmeal", 150, "Breakfast", carbs = 27, protein = 5, fat = 3),
+    Food("Chicken Sandwich", 450, "Lunch", carbs = 40, protein = 30, fat = 15),
+    Food("Caesar Salad", 500, "Lunch", carbs = 20, protein = 10, fat = 40),
+    Food("Spaghetti", 300, "Dinner", carbs = 55, protein = 10, fat = 5),
+    Food("Salmon", 200, "Dinner", carbs = 0, protein = 28, fat = 10),
+    Food("Apple", 95, "Snacks", carbs = 25, protein = 0, fat = 0),
+    Food("Protein Shake", 150, "Snacks", carbs = 10, protein = 25, fat = 3)
 )
 
 // order of categories to show up in
 val categoryOrder = listOf("Breakfast", "Lunch", "Dinner", "Snacks")
 
-// converts a Food from the list into a FoodEntry that FavoritesScreen understands
-// carbs/protein/fat are 0 for now until we get real data from the API
+// converts Food from the list into a FoodEntry that FavoritesScreen understands
 fun Food.toFoodEntry() = FoodEntry(
     name = this.name,
     calories = this.calories,
-    carbs = 0,
-    protein = 0,
-    fat = 0
+    carbs = this.carbs,
+    protein = this.protein,
+    fat = this.fat
 )
 
 // clickable header row for each category with a +/- toggle
@@ -93,7 +92,7 @@ private fun CategoryHeader(category: String, isExpanded: Boolean, onToggle: () -
     HorizontalDivider()
 }
 
-// card row for a single food item with heart button and image placeholder
+// card row for a single food item with heart button
 @Composable
 private fun FoodCard(
     food: Food,
@@ -129,16 +128,27 @@ private fun FoodCard(
                     tint = if (isFavorited) Color.Red else Color.Gray
                 )
             }
-
-            // stand-in for the food's image, swap for a real Image later
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .padding(horizontal = 8.dp)
-                    .background(Color.LightGray)
-            )
         }
     }
+}
+
+// shows nutritional details for the food the user tapped on
+@Composable
+private fun SelectedFoodDetail(food: Food) {
+    Spacer(modifier = Modifier.height(16.dp))
+    Text(text = "Selected food", style = MaterialTheme.typography.titleLarge)
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(text = "Name: ${food.name}")
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(text = "Category: ${food.category}")
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(text = "Calories: ${food.calories}")
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(text = "Carbs: ${food.carbs}")
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(text = "Protein: ${food.protein}")
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(text = "Fat: ${food.fat}")
 }
 
 @Composable
@@ -220,11 +230,7 @@ fun CategoriesScreen(
         // only runs this block if something's actually been tapped
         // show details for whichever food was tapped
         selectedFood?.let { food ->
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Selected food", style = MaterialTheme.typography.titleLarge)
-            Text(text = "Name: ${food.name}")
-            Text(text = "Category: ${food.category}")
-            Text(text = "Calories: ${food.calories}")
+            SelectedFoodDetail(food)
         }
     }
 }
