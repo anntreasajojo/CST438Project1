@@ -8,6 +8,8 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
+val fdcApiKey = providers.gradleProperty("FDC_API_KEY").orNull ?: "TODO_ADD_FDC_API_KEY"
+
 android {
     namespace = "com.example.cst438project1"
     compileSdk = 35
@@ -21,7 +23,7 @@ android {
         buildConfigField(
             "String",
             "FDC_API_KEY",
-            "\"TODO_ADD_FDC_API_KEY\""
+            "\"$fdcApiKey\""
         )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
