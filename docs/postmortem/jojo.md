@@ -35,4 +35,4 @@ This taught me to test both the expected user behavior and expected ones too tha
 
 1. I will request at least one reviewer when I open each pull request and give them enough time to look at the changes before merging. I will know this worked if every feature PR I open in Project 02 has a reviewer requested before it is merged.
 
-2. I will open pull requests as soon as a feature is ready instead of letting completed work sit aroind too long. I will know this worked if my Project 02 PRs are opened on the same day as the last commit on the feature branch.
+2. I will open pull requests as soon as a feature is ready instead of letting completed work sit around too long. I will know this worked if my Project 02 PRs are opened on the same day as the last commit on the feature branch.
