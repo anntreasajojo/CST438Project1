@@ -21,12 +21,13 @@
 
 ## Biggest challenge
 - The biggest challenge was getting used to Android Studio again, but this time with kotlin. Learning kotlin was it's own challenge too but it gets pretty simple after a while.
-- Another challenge was not being able to run the app. My laptop is not the best so I have to wait until I am on my desktop to run the app.
+- Another challenge was not being able to run the app. My laptop is not the best so I have to wait until I am on my desktop to run the app. I was still luckily able to write code but I had to make sure it was good code since I was not able to run it.
 
 ## Most valuable thing I learned
 - The most valuable thing I learned is how simple some databases could be to have a functional app
 - Another valuable thing I learned is how important test cases are to the app. This is to make sure the app is working as intended, that is why some people often do test cases first
 
 ## What I carry into Project 02
-1. I hope to leave more comments on my code for my teammates
-2. I hope to do things earlier for my team, such as pr reviews and other stuff
+1. I hope to leave more comments on my code for my teammates. I will know I have done this if there are any type of comments in my code, and hopefully my next teammates will mention it and how they like it.
+2. I hope to do things earlier for my team, such as pr reviews and other stuff. I know I will have done this if I do not turn in my PR reviews the day of or the night of. I will try to do them atleast a day or two before now.
+3. I will now code more on my desktop to run my code. I was mainly writing code on my laptop but could not test it until I got on my desktop.
